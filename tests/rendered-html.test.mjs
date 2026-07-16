@@ -56,9 +56,11 @@ test("serves the complete mobile game at the site root", async () => {
 
 test("ships game logic, hero deck preview, spells and every atlas", async () => {
   const gameJs = await readFile(new URL("../dist/client/complete.js", import.meta.url), "utf8");
+  const polishCss = await readFile(new URL("../dist/client/polish.css", import.meta.url), "utf8");
   assert.match(gameJs, /const HERO_SPELLS=/);
   assert.match(gameJs, /function showStartingDeck/);
   assert.match(gameJs, /localStorage/);
+  assert.match(polishCss, /width:min\(100cqw,calc\(100cqh \* \.7142857\)\)/);
 
   for (const path of [
     "dist/client/complete.css",
