@@ -1,0 +1,38 @@
+/* Expedition preparation: home -> hero -> real starting deck -> embark. */
+.home-loop{margin:0 20px 18px;padding:11px 10px;display:flex;align-items:center;justify-content:center;gap:7px;border-block:1px solid #80603b44;color:#9e8e77;font-size:8px}
+.home-loop span{display:flex;align-items:center;gap:4px;white-space:nowrap}.home-loop b{width:18px;height:18px;display:grid;place-items:center;border:1px solid #80603b;border-radius:50%;color:#d8b77c;font-size:8px}.home-loop i{color:#5f4b36;font-style:normal;font-size:15px}
+.home-actions .btn>small{display:block;margin-top:3px;color:#8f806d;font-size:8px;font-weight:600}.home-actions .btn.primary>small{color:#3d2a18}
+#hero-view.active{height:100dvh;min-height:0;display:grid;grid-template-rows:calc(58px + var(--safe-t)) minmax(0,1fr) auto;overflow:hidden}
+.hero-select-bar .prep-step{margin-left:auto;color:#8f806d;font-size:8px;font-weight:900;letter-spacing:.12em}
+.hero-select-scroll{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 0 18px}
+.hero-select-copy{padding:24px 20px 8px}.hero-select-copy h2{margin:5px 0 8px;font:900 28px/1.08 Georgia,"STKaiti",serif}.hero-select-copy>p:last-child{margin:0;color:#a99c89;font-size:10px;line-height:1.58}
+.hero-choice{flex:0 0 min(84vw,350px);scroll-snap-align:center}.hero-choice .hero-option{width:100%;min-height:158px;flex:none}
+.hero-deck-preview{width:100%;min-height:48px;margin-top:7px;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #80603b66;border-radius:11px;background:linear-gradient(145deg,#2a211a,#15110e);color:#d7c2a0;text-align:left;box-shadow:inset 0 1px #ffffff0a}
+.hero-deck-preview span{font-size:10px;font-weight:900}.hero-deck-preview small{color:#8f806d;font-size:8px}
+.hero-choice.selected .hero-deck-preview{border-color:color-mix(in srgb,var(--hero-color) 60%,#80603b);color:var(--hero-color);box-shadow:0 0 18px color-mix(in srgb,var(--hero-color) 12%,transparent)}
+.custom-start-slot{margin:5px 20px 13px;padding:13px;border:1px solid #80603b66;border-radius:13px;background:linear-gradient(145deg,#2b231d,#15110e);box-shadow:inset 0 1px #ffffff0a}
+.custom-slot-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.custom-slot-heading span{color:#df9b43;font-size:9px;font-weight:950;letter-spacing:.08em}.custom-slot-heading>b{padding:4px 7px;border-radius:20px;background:#3b2c1f;color:#9b8970;font-size:8px}.custom-slot-heading>b.equipped{background:#176b6844;color:#6be1d7}
+.custom-start-slot>p{margin:8px 0 0;color:#92836f;font-size:9px;line-height:1.5}.custom-slot-action{width:100%;min-height:37px;margin-top:10px;border:1px solid #80603b66;border-radius:9px;background:#17120e;color:#d5b780;font-size:9px;font-weight:900}
+.custom-slot-card{margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.custom-card-peek{min-width:0;display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:8px;padding:5px;border:1px solid #80603b44;border-radius:9px;background:#120f0c;color:#e4d4ba;text-align:left}
+.custom-card-peek>span:nth-child(2){min-width:0}.custom-card-peek b,.custom-card-peek small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.custom-card-peek b{font-size:10px}.custom-card-peek small{margin-top:3px;color:#8f806d;font-size:7px}.custom-card-peek em{color:#c9a56d;font-size:8px;font-style:normal;white-space:nowrap}
+.custom-slot-actions{width:72px;display:grid;gap:5px}.custom-slot-toggle,.custom-slot-edit{width:72px;border:1px solid #80603b66;border-radius:9px;background:#2b2118;color:#b5a28a;font-size:8px;font-weight:900}.custom-slot-toggle.active{border-color:#38c7bc77;background:#176b6840;color:#63ddd3}.custom-slot-edit{min-height:27px;background:#17120e;color:#d2b47d}
+.expedition-rules{margin:0 20px;display:grid;gap:7px}.expedition-rules>div{padding:9px 11px;display:grid;grid-template-columns:58px 1fr;gap:8px;border-left:2px solid #80603b;background:#1c1713}.expedition-rules b{color:#d7b477;font-size:9px}.expedition-rules span{color:#91816c;font-size:8px}
+.hero-select-footer{padding:9px 16px calc(11px + var(--safe-b));border-top:1px solid #80603b66;background:#100f0ef5;box-shadow:0 -14px 30px #0009;backdrop-filter:blur(14px)}
+#selected-hero-brief{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}#selected-hero-brief small{color:#7f715e;font-size:8px}#selected-hero-brief b{color:#d5c3a5;font-size:9px;text-align:right}.hero-select-footer .btn{width:100%}
+
+/* Full-card starting-deck preview, using the same card component as battle. */
+.starter-deck-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.starter-deck-summary span{padding:8px 3px;border:1px solid #80603b44;border-radius:9px;background:#15110e;color:#8f806d;font-size:7px;text-align:center}.starter-deck-summary b{display:block;margin-bottom:2px;color:#e3c58e;font:900 15px Georgia,serif}
+.starter-deck-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 7px;margin-top:13px}
+.starter-card{position:relative;width:100%;aspect-ratio:5/7;padding:0;border:0;background:transparent}.starter-card .standard-card{width:100%;height:100%}.starter-card>em{position:absolute;z-index:24;right:-3px;top:-3px;padding:3px 5px;border:1px solid #df9b43;border-radius:12px;background:#18110de8;color:#e2b56f;font-size:7px;font-style:normal;font-weight:950}
+.card-inspector{z-index:150}
+
+/* Spell cards keep cost, art and rules, replacing unit combat stats with a spell seal. */
+.effect-spell{--effect:#b88cff}.standard-card.type-spell{border-color:#746080}.standard-card.type-spell:after{border-color:#bca5d438}
+.type-spell .standard-title{border-color:#79628a;background:linear-gradient(180deg,#3b2d43,#211827 55%,#120e16)}
+.type-spell .standard-rule{padding-bottom:clamp(25px,22cqw,40px);background:radial-gradient(circle at 50% -15%,#b88cff20,transparent 56%),linear-gradient(145deg,#211827,#100c13)}
+.standard-spell-mark{position:absolute;z-index:16;left:50%;bottom:3px;transform:translateX(-50%);min-width:62%;height:clamp(24px,21cqw,37px);padding:0 clamp(6px,5cqw,11px);display:flex;align-items:center;justify-content:center;gap:clamp(3px,3cqw,6px);clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%);background:repeating-linear-gradient(115deg,transparent 0 4px,#ffffff0c 5px,transparent 6px 10px),linear-gradient(145deg,#8f72a8,#4b385b 42%,#211729 72%,#725785);box-shadow:inset 0 0 0 1px #d9c4ee42;filter:drop-shadow(0 2px 3px #000c);color:#eadcf7;white-space:nowrap}
+.standard-spell-mark i{font-style:normal;font-size:clamp(9px,8cqw,15px)}.standard-spell-mark b{font-size:clamp(7px,6cqw,11px);letter-spacing:.04em}
+@container (max-width:110px){.type-spell .standard-rule{padding-bottom:23px}}
+
+@media(max-height:720px){.hero-select-copy{padding-top:15px}.hero-select-copy h2{font-size:24px}.hero-choice .hero-option{min-height:148px}.custom-start-slot{margin-bottom:9px}.hero-select-footer{padding-top:7px}}

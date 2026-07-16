@@ -1,0 +1,75 @@
+import assert from "node:assert/strict";
+import { access, readFile } from "node:fs/promises";
+import test from "node:test";
+
+const root = new URL("../", import.meta.url);
+const client = new URL("../dist/client/", import.meta.url);
+
+function contentType(pathname) {
+  if (pathname.endsWith(".html")) return "text/html; charset=utf-8";
+  if (pathname.endsWith(".css")) return "text/css; charset=utf-8";
+  if (pathname.endsWith(".js")) return "text/javascript; charset=utf-8";
+  if (pathname.endsWith(".png")) return "image/png";
+  return "application/octet-stream";
+}
+
+async function render(pathname = "/") {
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
+  const { default: worker } = await import(workerUrl.href);
+
+  return worker.fetch(
+    new Request(`http://localhost${pathname}`),
+    {
+      ASSETS: {
+        async fetch(request) {
+          const url = new URL(request.url);
+          const relative = url.pathname.replace(/^\//, "");
+          try {
+            const body = await readFile(new URL(relative, client));
+            return new Response(body, {
+              headers: { "content-type": contentType(url.pathname) },
+            });
+          } catch {
+            return new Response("Not found", { status: 404 });
+          }
+        },
+      },
+    },
+  );
+}
+
+test("serves the complete mobile game at the site root", async () => {
+  const response = await render();
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+
+  const html = await response.text();
+  assert.match(html, /<title>炉痕地牢 · 完整试玩版<\/title>/i);
+  assert.match(html, /id="home-view"/);
+  assert.match(html, /id="hero-view"/);
+  assert.match(html, /viewport-fit=cover/);
+  assert.match(html, /og:image/);
+  assert.match(html, /complete\.js/);
+});
+
+test("ships game logic, hero deck preview, spells and every atlas", async () => {
+  const gameJs = await readFile(new URL("../dist/client/complete.js", import.meta.url), "utf8");
+  assert.match(gameJs, /const HERO_SPELLS=/);
+  assert.match(gameJs, /function showStartingDeck/);
+  assert.match(gameJs, /localStorage/);
+
+  for (const path of [
+    "dist/client/complete.css",
+    "dist/client/polish.css",
+    "dist/client/flow.css",
+    "dist/client/og.png",
+    "dist/client/assets/card-art-atlas-v1.png",
+    "dist/client/assets/card-art-player-v2.png",
+    "dist/client/assets/card-art-neutral-enemy-v2.png",
+    "dist/client/assets/card-art-boss-v2.png",
+  ]) {
+    await access(new URL(path, root));
+  }
+});

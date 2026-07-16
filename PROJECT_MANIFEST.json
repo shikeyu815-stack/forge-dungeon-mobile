@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "snapshotDate": "2026-07-16",
+  "project": {
+    "name": "炉痕地牢",
+    "locale": "zh-CN",
+    "genre": ["card-battler", "roguelike", "deck-builder"],
+    "canonicalEntry": "index.html",
+    "canonicalLogic": "complete.js",
+    "runtime": "vanilla-browser-static-worker-host",
+    "localPlayable": true,
+    "mobileWebIntegrated": true,
+    "pwa": false
+  },
+  "sourceOfTruth": {
+    "html": "index.html",
+    "styles": ["complete.css", "polish.css", "flow.css"],
+    "script": "complete.js",
+    "artDirectory": "assets",
+    "generatedOutput": "dist/client",
+    "buildScript": "scripts/build-static-site.mjs",
+    "hostEntry": "dist/server/index.js"
+  },
+  "contentCounts": {
+    "views": 9,
+    "heroes": 3,
+    "heroUnits": 18,
+    "heroSpells": 3,
+    "neutralUnits": 6,
+    "enemyUnits": 20,
+    "compendiumCards": 47,
+    "customCardSlots": 1,
+    "foes": 5,
+    "rooms": 7,
+    "events": 3,
+    "campActions": 3,
+    "relics": 4
+  },
+  "heroes": [
+    {
+      "id": "forge",
+      "name": "铸炉者",
+      "maxHp": 26,
+      "starter": ["F1", "F2", "F3", "F4", "FS1", "N1", "N2", "N3"],
+      "spell": "FS1"
+    },
+    {
+      "id": "spore",
+      "name": "孢子之母",
+      "maxHp": 24,
+      "starter": ["S1", "S2", "S3", "S4", "SS1", "N1", "N2", "N3"],
+      "spell": "SS1"
+    },
+    {
+      "id": "shadow",
+      "name": "逐影者",
+      "maxHp": 22,
+      "starter": ["H1", "H2", "H3", "H4", "HS1", "N1", "N2", "N3"],
+      "spell": "HS1"
+    }
+  ],
+  "roomSequence": [
+    "battle:rats",
+    "event:random",
+    "battle:cult",
+    "camp",
+    "elite:knight",
+    "battle:fungus",
+    "boss:boss"
+  ],
+  "battle": {
+    "lanes": 3,
+    "openingHand": 4,
+    "handLimit": 6,
+    "normalMaxRounds": 4,
+    "bossMaxRounds": 6,
+    "energyRule": "energy equals current round",
+    "cardsPerRound": 1,
+    "discardReshuffle": false,
+    "keywords": [
+      "deploy",
+      "shield",
+      "thorns",
+      "poison",
+      "sneak",
+      "pierce",
+      "deathrattle",
+      "heal",
+      "spell"
+    ]
+  },
+  "customCard": {
+    "type": "unit-only",
+    "savedSlots": 1,
+    "optionalStarter": true,
+    "effectValueRange": [1, 4],
+    "effects": ["shield", "strike", "thorns", "none"]
+  },
+  "persistence": {
+    "provider": "localStorage",
+    "keys": ["forge_meta", "forge_run"],
+    "battleStatePersisted": false,
+    "eventStatePersisted": false,
+    "rewardStatePersisted": false,
+    "crossDevice": false,
+    "saveVersioned": false
+  },
+  "mobile": {
+    "portraitFirst": true,
+    "safeArea": true,
+    "dynamicViewport": true,
+    "desktopFrameWidth": 430,
+    "landscapeSupported": false,
+    "realDeviceQaCompleted": false
+  },
+  "artAtlases": [
+    "assets/card-art-atlas-v1.png",
+    "assets/card-art-player-v2.png",
+    "assets/card-art-neutral-enemy-v2.png",
+    "assets/card-art-boss-v2.png"
+  ],
+  "deployment": {
+    "provider": "OpenAI Sites",
+    "config": ".openai/hosting.json",
+    "appEntry": "dist/server/index.js",
+    "publicGamePath": "/index.html",
+    "thirdPartyBuildDependencies": false,
+    "backendRequired": false,
+    "database": false,
+    "objectStorage": false
+  },
+  "legacyFiles": ["game.js", "styles.css", "mobile.css", "app/", "worker/", "build/", "vite.config.ts", "public/game/"],
+  "knownIssueIds": [
+    "NO_PWA",
+    "BATTLE_NOT_PERSISTED",
+    "ROOM_REWARD_RELOAD_EXPLOIT",
+    "NO_SAVE_VERSION",
+    "NO_CROSS_DEVICE_SAVE",
+    "LANDSCAPE_UNSUPPORTED",
+    "ZOOM_DISABLED",
+    "CUSTOM_NAME_UNESCAPED",
+    "RARITY_TEXT_WITHOUT_RARITY_SYSTEM",
+    "FIXED_MAP_DESCRIBED_AS_CHOICE",
+    "LEGACY_PARALLEL_FRONTEND"
+  ]
+}

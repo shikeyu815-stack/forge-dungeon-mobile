@@ -1,0 +1,14 @@
+{
+  "name": "forge-dungeon-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "sync-game": "node scripts/sync-game-assets.mjs",
+    "build": "node scripts/build-static-site.mjs",
+    "test": "node scripts/build-static-site.mjs && node --test tests/rendered-html.test.mjs"
+  },
+  "type": "module"
+}
