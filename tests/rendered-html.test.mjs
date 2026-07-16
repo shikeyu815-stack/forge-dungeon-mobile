@@ -60,6 +60,9 @@ test("ships game logic, hero deck preview, spells and every atlas", async () => 
   assert.match(gameJs, /const HERO_SPELLS=/);
   assert.match(gameJs, /function showStartingDeck/);
   assert.match(gameJs, /localStorage/);
+  assert.match(gameJs, /function startBattle[\s\S]*?\$\('#lock-btn'\)\.disabled=false/);
+  assert.match(gameJs, /\$\('#lock-btn'\)\.disabled=battle\.resolving/);
+  assert.match(gameJs, /el\.style\.outline=battle\.target===i/);
   assert.match(polishCss, /width:min\(100cqw,calc\(100cqh \* \.7142857\)\)/);
 
   for (const path of [
