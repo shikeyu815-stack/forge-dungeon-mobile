@@ -4,10 +4,13 @@
 - GitHub 源码：https://github.com/shikeyu815-stack/forge-dungeon-mobile
 - 发布日期：2026-07-16
 - 发布来源：公开仓库 `main` 分支的根目录
-- GitHub Pages 工作流：`pages-build-deployment #1`，已成功完成
-- 首次发布所用源码提交：`864bcb3d70df81da0b2f4c5aff489401fe9b8c1b`
+- GitHub Pages 首次发布提交：`864bcb3d70df81da0b2f4c5aff489401fe9b8c1b`
+- 卡图显示修复提交：`1da8982`（完整提交可在仓库历史中查看）
+- 已验证工作流：`pages-build-deployment #2`，运行 48 秒并成功完成
 
-2026-07-16 已在独立浏览器中验证公开地址，页面标题为“炉痕地牢 · 完整试玩版”，首页、英雄选择入口和卡牌图鉴入口均已正常渲染。该地址无需登录 GitHub，手机浏览器可直接打开。
+2026-07-16 已在独立浏览器中验证公开地址，页面标题为“炉痕地牢 · 完整试玩版”。使用 390×844 手机视口打开英雄初始牌组，卡框与不同卡牌的图集切片均正常显示。该地址无需登录 GitHub，手机浏览器可直接打开。
+
+卡图故障记录：首次 Pages 发布时，图集 PNG 已经上传且可单独访问，但卡牌通过 CSS 自定义变量引用的背景没有触发对应图集资源加载，导致牌面美术区域呈黑色。修复后 `artStyle()` 同时写入明确的 `background-image`，`index.html` 预加载四张图集；不要退回仅依赖 `--art-image` 的实现。
 
 游戏进度写入当前浏览器的 `localStorage`，不会自动同步到另一台设备或另一个浏览器。当前不是 PWA，没有 Service Worker，也不能保证离线运行。
 
