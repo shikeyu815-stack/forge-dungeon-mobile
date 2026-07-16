@@ -7,7 +7,9 @@
 - 名称：炉痕地牢
 - 类型：手机竖屏、三线同步战斗、Roguelike 牌组构筑游戏
 - 语言：简体中文，少量装饰性英文
-- 状态：本地静态版可玩；已接入 OpenAI Sites 手机网页托管
+- 状态：本地静态版可玩；已公开发布到 GitHub Pages，并保留旧的 OpenAI Sites 私有部署记录
+- 公开试玩：`https://shikeyu815-stack.github.io/forge-dungeon-mobile/`
+- 源码仓库：`https://github.com/shikeyu815-stack/forge-dungeon-mobile`
 - 数据后端：无。所有进度保存在浏览器 `localStorage`
 - PWA：否。目前是手机浏览器网页，不是可安装、离线缓存的应用
 
@@ -248,7 +250,14 @@ Boss 胜利获得 60 晶尘并结束远征。
 
 离线静态版：直接打开根目录 `index.html`。
 
-托管版：
+公开托管版：
+
+- GitHub Pages 直接从公开仓库 `shikeyu815-stack/forge-dungeon-mobile` 的 `main` 分支根目录发布。
+- 手机试玩：`https://shikeyu815-stack.github.io/forge-dungeon-mobile/`
+- 源码：`https://github.com/shikeyu815-stack/forge-dungeon-mobile`
+- 2026-07-16 已验证 Pages 构建成功，网页标题为“炉痕地牢 · 完整试玩版”。
+
+OpenAI Sites 构建（旧的私有部署路径）：
 
 1. 使用 Node.js 22 或更高版本
 2. 运行 `npm run build`（无第三方依赖，无需先安装）
@@ -257,7 +266,7 @@ Boss 胜利获得 60 晶尘并结束远征。
 
 自动测试：`npm test` 会构建并检查根路由、手机 metadata、英雄牌组预览、法术逻辑和四张图集。
 
-`.openai/hosting.json` 是 Sites 托管元数据。只允许保存 `project_id`、`d1` 和 `r2`，绝不能把令牌或仓库凭证写入项目。
+`.openai/hosting.json` 是旧 Sites 托管元数据。只允许保存 `project_id`、`d1` 和 `r2`，绝不能把令牌或仓库凭证写入项目。普通手机访问应优先使用上面的公开 GitHub Pages 地址。
 
 ## 12. 已知问题与建议优先级
 

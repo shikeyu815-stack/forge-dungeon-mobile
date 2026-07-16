@@ -116,7 +116,8 @@ function cardArtRef(c){
 }
 function artStyle(c){
  const [atlas,n]=cardArtRef(c),x=n%4,y=Math.floor(n/4);
- return `--art-image:url('${ART_ATLASES[atlas]}');background-position:${x*33.333}% ${y*33.333}%`;
+ const image=ART_ATLASES[atlas];
+ return `--art-image:url('${image}');background-image:url('${image}')!important;background-position:${x*33.333}% ${y*33.333}%`;
 }
 
 const CARD_FLAVOR={

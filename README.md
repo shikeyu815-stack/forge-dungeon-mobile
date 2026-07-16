@@ -1,6 +1,9 @@
 # 炉痕地牢 · 完整本地试玩版
 
-本地可直接双击 `index.html` 开始游戏，无需安装。托管版本直接发布同一份纯静态游戏，可在手机浏览器中游玩。
+手机公开试玩地址：<https://shikeyu815-stack.github.io/forge-dungeon-mobile/>  
+GitHub 源码仓库：<https://github.com/shikeyu815-stack/forge-dungeon-mobile>
+
+本地也可直接双击 `index.html` 开始游戏，无需安装。GitHub Pages 直接发布同一份纯静态游戏，可在手机浏览器中游玩。
 
 另一名开发者或 AI 接手时，请先阅读 `AI_HANDOFF.md`，再查看 `PROJECT_MANIFEST.json` 与 `ASSET_MANIFEST.md`。根目录游戏文件是权威源，`dist/` 由无依赖构建脚本自动生成。
 
