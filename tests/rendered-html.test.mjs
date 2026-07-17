@@ -75,6 +75,7 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   assert.match(polishCss, /width:min\(100cqw,calc\(100cqh \* \.7142857\)\)/);
 
   for (const path of [
+    "dist/.openai/hosting.json",
     "dist/client/complete.css",
     "dist/client/polish.css",
     "dist/client/flow.css",

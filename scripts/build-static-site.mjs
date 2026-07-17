@@ -49,6 +49,11 @@ for (const file of runtimeFiles) {
 
 await cp(join(root, "assets"), join(client, "assets"), { recursive: true });
 await cp(join(root, "public", "og.png"), join(client, "og.png"));
+await mkdir(join(dist, ".openai"), { recursive: true });
+await cp(
+  join(root, ".openai", "hosting.json"),
+  join(dist, ".openai", "hosting.json"),
+);
 await writeFile(join(server, "index.js"), workerSource, "utf8");
 await writeFile(
   join(dist, "build-manifest.json"),
