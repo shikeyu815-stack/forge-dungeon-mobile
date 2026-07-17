@@ -1,152 +1,50 @@
 {
-  "schemaVersion": 1,
-  "snapshotDate": "2026-07-16",
-  "project": {
-    "name": "炉痕地牢",
-    "locale": "zh-CN",
-    "genre": ["card-battler", "roguelike", "deck-builder"],
-    "canonicalEntry": "index.html",
-    "canonicalLogic": "complete.js",
-    "runtime": "vanilla-browser-static",
-    "localPlayable": true,
-    "mobileWebIntegrated": true,
-    "pwa": false
-  },
-  "sourceOfTruth": {
-    "html": "index.html",
-    "styles": ["complete.css", "polish.css", "flow.css"],
-    "script": "complete.js",
-    "artDirectory": "assets",
-    "generatedOutput": "dist/client",
-    "buildScript": "scripts/build-static-site.mjs",
-    "hostEntry": "dist/server/index.js"
-  },
-  "contentCounts": {
-    "views": 9,
+  "name": "forge-dungeon-mobile",
+  "title": "炉痕地牢 · 三层远征",
+  "updated": "2026-07-17",
+  "platform": "mobile-web",
+  "architecture": "static-html-css-javascript",
+  "publicUrl": "https://shikeyu815-stack.github.io/forge-dungeon-mobile/",
+  "repository": "https://github.com/shikeyu815-stack/forge-dungeon-mobile",
+  "gameplay": {
+    "mode": "PVE dungeon roguelike",
     "heroes": 3,
-    "heroUnits": 18,
-    "heroSpells": 3,
-    "neutralUnits": 6,
-    "enemyUnits": 20,
-    "compendiumCards": 47,
-    "customCardSlots": 1,
-    "foes": 5,
-    "rooms": 7,
-    "events": 3,
-    "campActions": 3,
-    "relics": 4
-  },
-  "heroes": [
-    {
-      "id": "forge",
-      "name": "铸炉者",
-      "maxHp": 26,
-      "starter": ["F1", "F2", "F3", "F4", "FS1", "N1", "N2", "N3"],
-      "spell": "FS1"
-    },
-    {
-      "id": "spore",
-      "name": "孢子之母",
-      "maxHp": 24,
-      "starter": ["S1", "S2", "S3", "S4", "SS1", "N1", "N2", "N3"],
-      "spell": "SS1"
-    },
-    {
-      "id": "shadow",
-      "name": "逐影者",
-      "maxHp": 22,
-      "starter": ["H1", "H2", "H3", "H4", "HS1", "N1", "N2", "N3"],
-      "spell": "HS1"
-    }
-  ],
-  "roomSequence": [
-    "battle:rats",
-    "event:random",
-    "battle:cult",
-    "camp",
-    "elite:knight",
-    "battle:fungus",
-    "boss:boss"
-  ],
-  "battle": {
+    "acts": 3,
+    "floorsPerAct": 5,
+    "totalFloors": 15,
     "lanes": 3,
-    "openingHand": 4,
-    "handLimit": 6,
-    "normalMaxRounds": 4,
-    "bossMaxRounds": 6,
-    "energyRule": "energy equals current round",
-    "cardsPerRound": 1,
-    "discardReshuffle": false,
-    "keywords": [
-      "deploy",
-      "shield",
-      "thorns",
-      "poison",
-      "sneak",
-      "pierce",
-      "deathrattle",
-      "heal",
-      "spell"
-    ]
+    "startingDeckSize": 8,
+    "handLimit": 8,
+    "energyCap": 10,
+    "victoryCondition": "enemy hero health reaches zero",
+    "turnLimit": null,
+    "deckCycle": ["drawPile", "hand", "boardOrSpell", "discardPile", "reshuffle"],
+    "roomTypes": ["battle", "elite", "event", "camp", "relic", "boss"],
+    "relics": 10,
+    "customCardCrafting": false
   },
-  "customCard": {
-    "type": "unit-only",
-    "savedSlots": 1,
-    "optionalStarter": true,
-    "effectValueRange": [1, 4],
-    "effects": ["shield", "strike", "thorns", "none"]
+  "ui": {
+    "mobileFirst": true,
+    "fanHand": true,
+    "cardInspector": true,
+    "keywordPanel": true,
+    "unifiedCardComponent": true,
+    "combatCollisionFx": true,
+    "damagePopups": true
   },
-  "persistence": {
-    "provider": "localStorage",
-    "keys": ["forge_meta", "forge_run"],
-    "battleStatePersisted": false,
-    "eventStatePersisted": false,
-    "rewardStatePersisted": false,
-    "crossDevice": false,
-    "saveVersioned": false
-  },
-  "mobile": {
-    "portraitFirst": true,
-    "safeArea": true,
-    "dynamicViewport": true,
-    "desktopFrameWidth": 430,
-    "landscapeSupported": false,
-    "realDeviceQaCompleted": false
-  },
-  "artAtlases": [
+  "assets": [
     "assets/card-art-atlas-v1.png",
     "assets/card-art-player-v2.png",
     "assets/card-art-neutral-enemy-v2.png",
-    "assets/card-art-boss-v2.png"
+    "assets/card-art-boss-v2.png",
+    "assets/battle-arena-bg-v1.png",
+    "assets/dungeon-map-bg-v1.png",
+    "public/og.png"
   ],
-  "deployment": {
-    "primaryProvider": "GitHub Pages",
-    "publicUrl": "https://shikeyu815-stack.github.io/forge-dungeon-mobile/",
-    "sourceRepository": "https://github.com/shikeyu815-stack/forge-dungeon-mobile",
-    "sourceBranch": "main",
-    "sourceDirectory": "/",
-    "verifiedOn": "2026-07-16",
-    "legacyProvider": "OpenAI Sites",
-    "legacyConfig": ".openai/hosting.json",
-    "legacyAppEntry": "dist/server/index.js",
-    "publicGamePath": "/",
-    "thirdPartyBuildDependencies": false,
-    "backendRequired": false,
-    "database": false,
-    "objectStorage": false
+  "persistence": {
+    "storage": "localStorage",
+    "runVersion": 2,
+    "keys": ["forge_meta", "forge_run"]
   },
-  "legacyFiles": ["game.js", "styles.css", "mobile.css", "app/", "worker/", "build/", "vite.config.ts", "public/game/"],
-  "knownIssueIds": [
-    "NO_PWA",
-    "BATTLE_NOT_PERSISTED",
-    "ROOM_REWARD_RELOAD_EXPLOIT",
-    "NO_SAVE_VERSION",
-    "NO_CROSS_DEVICE_SAVE",
-    "LANDSCAPE_UNSUPPORTED",
-    "ZOOM_DISABLED",
-    "CUSTOM_NAME_UNESCAPED",
-    "RARITY_TEXT_WITHOUT_RARITY_SYSTEM",
-    "FIXED_MAP_DESCRIBED_AS_CHOICE",
-    "LEGACY_PARALLEL_FRONTEND"
-  ]
+  "verification": "pnpm test"
 }

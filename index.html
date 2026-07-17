@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#100f0e" />
-  <title>炉痕地牢 · 完整试玩版</title>
-  <meta name="description" content="选择英雄、预览初始牌组，在三线战场中一路铸卡闯过七个地牢房间。" />
+  <title>炉痕地牢 · 三层远征</title>
+  <meta name="description" content="手机可玩的三线卡牌地牢：三层分岔路线、循环牌库与遗物构筑。" />
   <meta property="og:title" content="炉痕地牢 · 三线卡牌远征" />
   <meta property="og:description" content="手机浏览器可玩的暗黑锻炉卡牌地牢。" />
   <meta property="og:type" content="website" />
@@ -16,9 +16,11 @@
   <link rel="preload" as="image" href="assets/card-art-player-v2.png" />
   <link rel="preload" as="image" href="assets/card-art-neutral-enemy-v2.png" />
   <link rel="preload" as="image" href="assets/card-art-boss-v2.png" />
-  <link rel="stylesheet" href="complete.css?v=20260716e" />
-  <link rel="stylesheet" href="polish.css?v=20260716e" />
-  <link rel="stylesheet" href="flow.css?v=20260716e" />
+  <link rel="preload" as="image" href="assets/battle-arena-bg-v1.png" />
+  <link rel="preload" as="image" href="assets/dungeon-map-bg-v1.png" />
+  <link rel="stylesheet" href="complete.css?v=20260717a" />
+  <link rel="stylesheet" href="polish.css?v=20260717a" />
+  <link rel="stylesheet" href="flow.css?v=20260717a" />
 </head>
 <body>
   <main id="game">
@@ -29,29 +31,27 @@
       </div>
       <div class="home-hero">
         <p class="kicker">CARD DUNGEON</p>
-        <h1>把规则铸成<br><em>自己的牌。</em></h1>
-        <p>点击开始后选择英雄、查看真实初始牌组，再踏入七个房间。战斗胜利会带来新卡，事件与营火会继续改变构筑。</p>
+        <h1>下潜三层<br><em>活着回来。</em></h1>
+        <p>选英雄，走路线，杀首领。</p>
       </div>
       <div class="home-loop" aria-label="远征流程"><span><b>1</b>选择英雄</span><i>›</i><span><b>2</b>预览牌组</span><i>›</i><span><b>3</b>开始出征</span></div>
       <div class="home-actions">
         <button class="btn primary" id="new-run-btn">开始游戏 · 选择英雄 <span>→</span></button>
         <button class="btn secondary" id="continue-btn" hidden>继续上次远征</button>
-        <button class="btn ghost" id="open-forge-btn">自由铸卡试验台 <small>可选：打造一张额外起始牌</small></button>
-        <button class="btn ghost compendium-entry" id="open-library-btn"><span>▦</span> 卡牌图鉴 <small>查看全部已实现卡牌</small></button>
+        <button class="btn ghost compendium-entry" id="open-library-btn"><span>▦</span> 卡牌图鉴</button>
       </div>
-      <div class="record"><span>通关 <b id="clear-count">0</b></span><i></i><span>最佳深度 <b id="best-depth">0</b>/7</span></div>
+      <div class="record"><span>通关 <b id="clear-count">0</b></span><i></i><span>最佳深度 <b id="best-depth">0</b>/15</span></div>
     </section>
 
     <section class="view" id="hero-view">
       <header class="gamebar hero-select-bar"><button class="square" data-home>←</button><div><small>远征准备</small><strong>选择英雄</strong></div><div class="prep-step">STEP 1/2</div></header>
       <div class="hero-select-scroll">
-        <div class="hero-select-copy"><p class="kicker">CHOOSE YOUR PATH</p><h2>谁来带领这副牌？</h2><p>每名英雄拥有不同技能、专属单位与一张起始法术。点击英雄卡选择，或直接预览该英雄的真实初始牌组。</p></div>
+        <div class="hero-select-copy"><p class="kicker">CHOOSE YOUR PATH</p><h2>选择英雄</h2></div>
         <div class="hero-picker" id="hero-picker" role="listbox" aria-label="英雄列表"></div>
-        <section class="custom-start-slot" id="custom-start-slot" aria-live="polite"></section>
         <section class="expedition-rules">
-          <div><b>战斗房</b><span>胜利后从三张卡中选择一张</span></div>
-          <div><b>事件房</b><span>可能获得、移除卡牌或交换生命</span></div>
-          <div><b>营火房</b><span>治疗、强化单位牌或精简牌组</span></div>
+          <div><b>三层</b><span>每层五个房间</span></div>
+          <div><b>分岔</b><span>每一步选择路线</span></div>
+          <div><b>击杀</b><span>怪物归零才算胜利</span></div>
         </section>
       </div>
       <footer class="hero-select-footer">
@@ -63,7 +63,7 @@
     <section class="view" id="map-view">
       <header class="gamebar">
         <button class="square" data-home>×</button>
-        <div><small>第 <span id="floor-num">1</span> 层</small><strong id="map-title">灰烬回廊</strong></div>
+        <div><small>第 <span id="act-num">1</span> 层 · <span id="floor-num">1</span>/5</small><strong id="map-title">灰烬回廊</strong></div>
         <div class="run-hp"><span>♥</span><b id="map-hp">24</b><small>/24</small></div>
       </header>
       <div class="run-strip">
@@ -71,14 +71,14 @@
         <div><strong id="map-hero-name">铸炉者</strong><small><span id="deck-count">8</span> 张牌 · <span id="relic-count">0</span> 件遗物</small></div>
         <div class="run-dust">◆ <span id="run-dust">0</span></div>
       </div>
-      <div class="map-copy"><span>选择前路</span><h2>地牢正在重组</h2><p>路线已被炉火照亮。活着走到最深处。</p></div>
+      <div class="map-copy"><span>选择前路</span><h2 id="map-stage-title">两条路，只选一条</h2></div>
       <div class="dungeon-path" id="dungeon-path"></div>
-      <button class="deck-peek" id="deck-peek">查看当前牌组</button>
+      <div class="map-tools"><button class="deck-peek" id="deck-peek">牌组</button><button class="deck-peek" id="relic-peek">遗物</button></div>
     </section>
 
     <section class="view" id="battle-view">
       <header class="battlebar">
-        <div class="round"><small>回合</small><b id="round">1</b><span>/ <i id="max-round">4</i></span></div>
+        <div class="round"><small>回合</small><b id="round">1</b></div>
         <div class="phase"><i></i><span id="phase">规划行动</span></div>
         <button class="square" id="battle-help">?</button>
       </header>
@@ -103,8 +103,10 @@
         <button class="skill" id="skill-btn"><span id="skill-icon">◇</span><b id="skill-name">炉心守护</b><small id="skill-desc">本局一次</small></button>
       </div>
       <div class="hand-dock">
+        <div class="pile-count draw-pile"><b id="draw-count">0</b><small>牌库</small></div>
         <div class="energy"><b><span id="energy">1</span>/<i id="energy-max">1</i></b><small>能量</small></div>
         <div class="hand" id="hand"></div>
+        <div class="pile-count discard-pile"><b id="discard-count">0</b><small>弃牌</small></div>
         <button class="lock-btn" id="lock-btn"><b>锁定</b><small>同时揭示</small></button>
       </div>
       <div class="toast" id="toast"></div>
@@ -133,19 +135,6 @@
       <div class="reward-copy"><p class="kicker">CHOOSE ONE</p><h2>让牌组继续生长</h2><p>新卡将立即加入本次远征。</p></div>
       <div class="reward-cards" id="reward-cards"></div>
       <button class="btn ghost skip-reward" id="skip-reward">跳过并获得 10 晶尘</button>
-    </section>
-
-    <section class="view" id="forge-view">
-      <header class="gamebar"><button class="square" id="forge-back" data-home>←</button><div><small>自由模式</small><strong>铸卡试验台</strong></div><div class="wallet">◆ <b id="forge-dust">0</b></div></header>
-      <div class="forge-preview" id="forge-preview" aria-label="自定义卡牌预览"></div>
-      <div class="budget"><span>价值预算</span><b><i id="used-budget">5</i> / <i id="max-budget">6</i></b><div><em id="budget-bar"></em></div></div>
-      <div class="forge-form">
-        <label>名称<input id="forge-name" value="余烬守卫" maxlength="8"></label>
-        <div class="form-row"><label>费用<select id="forge-cost-input"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label><label>攻击<select id="forge-atk"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label><label>生命<select id="forge-hp"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></label></div>
-        <span class="form-label">规则组件</span><div class="forge-effects" id="forge-effects"><button class="active" data-effect="shield">◇ 护盾</button><button data-effect="strike">✦ 直伤</button><button data-effect="thorns">⌁ 荆棘</button><button data-effect="none">○ 无效果</button></div>
-        <div class="effect-value-row" id="forge-effect-value-row"><span><b id="forge-effect-value-name">护盾数值</b><small id="forge-effect-value-hint">部署后自身获得的护盾</small></span><div class="effect-stepper"><button id="forge-effect-minus" type="button" aria-label="减少效果数值">−</button><strong id="forge-effect-value">1</strong><button id="forge-effect-plus" type="button" aria-label="增加效果数值">＋</button></div></div>
-        <button class="btn primary" id="save-forge">保存为远征起始牌</button>
-      </div>
     </section>
 
     <section class="view" id="library-view">
@@ -177,6 +166,6 @@
     </div>
   </div>
   <div class="sheet" id="sheet"><div class="sheet-card"><button class="sheet-close">×</button><div id="sheet-content"></div></div></div>
-  <script src="complete.js?v=20260716e"></script>
+  <script src="complete.js?v=20260717a"></script>
 </body>
 </html>

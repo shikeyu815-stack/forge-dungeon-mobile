@@ -54,15 +54,34 @@ const FOES={
  boss:{name:'深炉看守者',glyph:'王',hp:32,color:'#df9b43',boss:true,cards:[{name:'看守者之眼',cost:1,atk:2,hp:3,effect:'shield',text:'部署获得护盾。'},{name:'熔铁猎犬',cost:2,atk:3,hp:3,effect:'strike',text:'部署造成伤害。'},{name:'刑具构装',cost:3,atk:4,hp:5,effect:'thorns',text:'荆棘1。'},{name:'深炉之拳',cost:4,atk:6,hp:5,effect:'pierce',text:'伤害会穿透。'},{name:'王座残骸',cost:5,atk:7,hp:8,effect:'shield2',text:'部署获得2点护盾。'}]}
 };
 
-const ROOMS=[
- {type:'battle',title:'灰烬巢穴',sub:'普通战斗',icon:'⚔',color:'#dc6858',foe:'rats'},
- {type:'event',title:'低语回廊',sub:'未知事件',icon:'?',color:'#38c7bc'},
- {type:'battle',title:'渣火礼拜堂',sub:'普通战斗',icon:'⚔',color:'#dc6858',foe:'cult'},
- {type:'camp',title:'无主营火',sub:'恢复或强化',icon:'♨',color:'#df9b43'},
- {type:'elite',title:'失控铸甲',sub:'精英战斗 · 遗物',icon:'✦',color:'#b88cff',foe:'knight'},
- {type:'battle',title:'菌毯深井',sub:'普通战斗',icon:'⚔',color:'#dc6858',foe:'fungus'},
- {type:'boss',title:'深炉王座',sub:'区域首领',icon:'♛',color:'#df9b43',foe:'boss'}
+const TOTAL_FLOORS=15;
+const ROOM_INFO={
+ battle:{sub:'战斗',icon:'⚔',color:'#dc6858'},elite:{sub:'精英 · 遗物',icon:'✦',color:'#b88cff'},
+ event:{sub:'事件',icon:'?',color:'#38c7bc'},camp:{sub:'营火',icon:'♨',color:'#df9b43'},
+ relic:{sub:'遗物宝库',icon:'◆',color:'#66c9bd'},boss:{sub:'层主',icon:'♛',color:'#e4ad55'}
+};
+const RELICS=[
+ {name:'铸甲碎片',desc:'最大生命 +3',onGain(){run.maxHp+=3;run.hp+=3}},
+ {name:'回响齿轮',desc:'战斗开始多抽 1 张牌'},
+ {name:'余烬棱镜',desc:'每场首个单位 +1 攻击'},
+ {name:'火种核心',desc:'战斗首回合能量 +1'},
+ {name:'铁砧吊坠',desc:'部署的单位 +1 最大生命'},
+ {name:'血煤',desc:'战斗胜利后恢复 2 点生命'},
+ {name:'贪婪之眼',desc:'每回合多抽 1 张牌'},
+ {name:'尖牙徽记',desc:'空线直击额外造成 1 点伤害'},
+ {name:'灰烬瓶',desc:'洗牌时恢复 1 点生命'},
+ {name:'钟摆',desc:'第 5 回合起能量上限 +1'}
 ];
+
+function room(type,title,foe){return{type,title,foe,...ROOM_INFO[type]}}
+function createRoute(){
+ const acts=[
+  [[room('battle','灰烬巢穴','rats'),room('battle','渣火礼拜堂','cult')],[room('event','低语回廊'),room('camp','无主营火')],[room('battle','菌毯深井','fungus'),room('elite','失控铸甲','knight')],[room('relic','封存宝库'),room('camp','断链营火')],[room('boss','灰烬层主','boss')]],
+  [[room('battle','黑铁甬道','cult'),room('battle','孢雾裂谷','fungus')],[room('elite','重甲刑场','knight'),room('event','倒悬商队')],[room('battle','啮齿矿井','rats'),room('relic','齿轮圣龛')],[room('camp','熔岩歇脚处'),room('battle','炉心卫队','cult')],[room('boss','熔铁层主','boss')]],
+  [[room('elite','王座先锋','knight'),room('battle','深层菌海','fungus')],[room('relic','看守者密库'),room('event','最后的交易')],[room('battle','千鼠之门','rats'),room('elite','空甲议会','knight')],[room('camp','余烬祭坛'),room('battle','王座长廊','cult')],[room('boss','深炉看守者','boss')]]
+ ];
+ return acts.flat();
+}
 
 const EVENTS=[
  {title:'沉睡的铸造台',body:'一台古老机器仍在微微发热。齿轮间卡着一枚完整的规则核心。',choices:[{title:'投入20晶尘',desc:'获得一张随机稀有卡',tag:'冒险',action:'buyCard'},{title:'拆走零件',desc:'获得25晶尘，但失去3点生命',tag:'贪婪',action:'scrap'},{title:'安静离开',desc:'什么也不发生',tag:'稳妥',action:'leave'}]},
@@ -71,15 +90,9 @@ const EVENTS=[
 ];
 
 const storage={get(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-let meta=storage.get('forge_meta',{dust:0,clears:0,best:0,custom:null});
-let selectedHero='forge',includeCustomCard=!!meta.custom,forgeReturnView='home-view',run=storage.get('forge_run',null),battle=null;
-const forgeEffectValues={shield:1,strike:1,thorns:1,none:0};
-const FORGE_EFFECT_CONFIG={
- shield:{label:'护盾数值',hint:'部署后自身获得的护盾',rate:1,rule:n=>`部署：自身获得${n}点护盾。`},
- strike:{label:'直伤数值',hint:'部署时对位敌人受到的伤害',rate:2,rule:n=>`部署：对位敌人造成${n}点伤害。`},
- thorns:{label:'荆棘数值',hint:'受击后返还给攻击者的伤害',rate:2,rule:n=>`荆棘${n}：受击后对攻击者造成${n}点伤害。`},
- none:{label:'无效果',hint:'此卡没有额外规则',rate:0,rule:()=>`无特殊效果。`}
-};
+let meta=storage.get('forge_meta',{dust:0,clears:0,best:0});
+let selectedHero='forge',run=storage.get('forge_run',null),battle=null;
+if(run&&!run.route){run=null;storage.set('forge_run',null)}
 
 const ART_ATLASES={
  hero:'assets/card-art-atlas-v1.png',
@@ -210,7 +223,7 @@ function bindCardHold(el,c){
 
 function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));scrollTo(0,0)}
 function persist(){storage.set('forge_meta',meta);storage.set('forge_run',run);renderMeta()}
-function renderMeta(){$('#home-dust').textContent=meta.dust;$('#forge-dust').textContent=meta.dust;$('#clear-count').textContent=meta.clears;$('#best-depth').textContent=meta.best;$('#continue-btn').hidden=!run||run.finished}
+function renderMeta(){$('#home-dust').textContent=meta.dust;$('#clear-count').textContent=meta.clears;$('#best-depth').textContent=Math.min(TOTAL_FLOORS,meta.best||0);$('#continue-btn').hidden=!run||run.finished}
 function hero(){return HEROES[run?.hero||selectedHero]}
 function shuffle(a){a=[...a];for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t.timer);t.timer=setTimeout(()=>t.classList.remove('show'),1700)}
@@ -219,65 +232,61 @@ function closeSheet(){$('#sheet').classList.remove('open')}
 
 function heroCardPool(h){return [...h.cards,...(HERO_SPELLS[h.id]||[])]}
 function deckStats(cards){return{units:cards.filter(c=>cardType(c)==='unit').length,spells:cards.filter(c=>cardType(c)==='spell').length,avg:(cards.reduce((n,c)=>n+c.cost,0)/Math.max(1,cards.length)).toFixed(1)}}
-function startingDeck(h,withCustom=includeCustomCard){const pool=[...heroCardPool(h),...NEUTRAL],cards=HERO_STARTERS[h.id].map(id=>pool.find(c=>c.id===id)).filter(Boolean).map(clone);if(withCustom&&meta.custom)cards.push(clone(meta.custom));return cards}
+function startingDeck(h){const pool=[...heroCardPool(h),...NEUTRAL];return HERO_STARTERS[h.id].map(id=>pool.find(c=>c.id===id)).filter(Boolean).map(clone)}
 
 function updateHeroBrief(){
- const h=HEROES[selectedHero],cards=startingDeck(h,includeCustomCard),s=deckStats(cards);
+ const h=HEROES[selectedHero],cards=startingDeck(h),s=deckStats(cards);
  $('#selected-hero-brief').innerHTML=`<small>当前选择</small><b>${h.name} · ${cards.length}张 · ${s.units}单位 / ${s.spells}法术</b>`;
  $('#embark-btn').innerHTML=`以${h.name}开始出征 <span>→</span>`
 }
 
-function renderCustomStartSlot(){
- const root=$('#custom-start-slot');
- if(!meta.custom){
-  root.innerHTML=`<div class="custom-slot-heading"><span>自铸牌槽 · 可选</span><b>未铸造</b></div><p>这不是开局必经步骤。你可以直接使用英雄的8张初始牌，也可以先打造一张额外起始牌。</p><button class="custom-slot-action" id="custom-slot-forge">前往自由铸卡</button>`;
-  $('#custom-slot-forge').onclick=()=>openForge('hero-view');
-  return
- }
- const c=meta.custom;
- root.innerHTML=`<div class="custom-slot-heading"><span>自铸牌槽 · 可选</span><b class="${includeCustomCard?'equipped':''}">${includeCustomCard?'本次携带':'本次不携带'}</b></div><div class="custom-slot-card"><button class="custom-card-peek" id="custom-card-peek"><span class="deck-art art-atlas" style="${artStyle(c)}"><i>${c.cost}</i></span><span><b>${c.name}</b><small>${rulesText(c)}</small></span><em>⚔${c.atk} ♥${c.hp}</em></button><div class="custom-slot-actions"><button class="custom-slot-toggle ${includeCustomCard?'active':''}" id="custom-slot-toggle">${includeCustomCard?'移出本次牌组':'加入本次牌组'}</button><button class="custom-slot-edit" id="custom-slot-edit">修改</button></div></div>`;
- $('#custom-card-peek').onclick=()=>showCardInspector(c);
- $('#custom-slot-toggle').onclick=()=>{includeCustomCard=!includeCustomCard;renderHeroes();renderCustomStartSlot()};
- $('#custom-slot-edit').onclick=()=>openForge('hero-view')
-}
-
 function renderHeroes(){
- $('#hero-picker').innerHTML=Object.values(HEROES).map(h=>{const cards=startingDeck(h,includeCustomCard),s=deckStats(cards);return `<article class="hero-choice ${selectedHero===h.id?'selected':''}" style="--hero-color:${h.color}"><button class="hero-option ${selectedHero===h.id?'selected':''}" data-hero="${h.id}" role="option" aria-selected="${selectedHero===h.id}"><div class="hero-art art-atlas" style="${artStyle(h)}"><span>${h.glyph}</span></div><div class="hero-option-copy"><h3>${h.name}</h3><p>${h.intro}</p><small>${h.title} · ${h.maxHp}生命</small></div></button><button class="hero-deck-preview" data-preview="${h.id}"><span>▦ 预览初始牌组</span><small>${cards.length}张 · ${s.units}单位 · ${s.spells}法术</small></button></article>`}).join('');
- $$('.hero-option').forEach(b=>b.onclick=()=>{selectedHero=b.dataset.hero;renderHeroes();renderCustomStartSlot()});
- $$('.hero-deck-preview').forEach(b=>b.onclick=()=>{selectedHero=b.dataset.preview;renderHeroes();renderCustomStartSlot();showStartingDeck(b.dataset.preview)});
+ $('#hero-picker').innerHTML=Object.values(HEROES).map(h=>{const cards=startingDeck(h),s=deckStats(cards);return `<article class="hero-choice ${selectedHero===h.id?'selected':''}" style="--hero-color:${h.color}"><button class="hero-option ${selectedHero===h.id?'selected':''}" data-hero="${h.id}" role="option" aria-selected="${selectedHero===h.id}"><div class="hero-art art-atlas" style="${artStyle(h)}"><span>${h.glyph}</span></div><div class="hero-option-copy"><h3>${h.name}</h3><small>${h.title} · ${h.maxHp}生命</small></div></button><button class="hero-deck-preview" data-preview="${h.id}"><span>▦ 初始牌组</span><small>${cards.length}张 · ${s.units}单位 · ${s.spells}法术</small></button></article>`}).join('');
+ $$('.hero-option').forEach(b=>b.onclick=()=>{selectedHero=b.dataset.hero;renderHeroes()});
+ $$('.hero-deck-preview').forEach(b=>b.onclick=()=>{selectedHero=b.dataset.preview;renderHeroes();showStartingDeck(b.dataset.preview)});
  updateHeroBrief();
  if($('#hero-view').classList.contains('active'))requestAnimationFrame(()=>$('.hero-choice.selected')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}))
 }
 
 function showStartingDeck(heroId=selectedHero){
- const h=HEROES[heroId],cards=startingDeck(h,includeCustomCard),s=deckStats(cards);
- sheet(`<div class="starter-deck-sheet"><p class="kicker">STARTING DECK</p><h2>${h.name}的初始牌组</h2><div class="starter-deck-summary"><span><b>${cards.length}</b>张牌</span><span><b>${s.units}</b>单位</span><span><b>${s.spells}</b>法术</span><span><b>${s.avg}</b>均费</span></div><p>${meta.custom&&includeCustomCard?'已包含1张自铸牌。':'8张英雄基础起始牌。'}长按或点击任意卡牌查看完整规则。</p><div class="starter-deck-grid">${cards.map((c,i)=>`<button class="starter-card" data-starter-card="${i}" aria-label="查看${c.name}">${cardFace(c,'starter-face')}${c.custom?'<em>自铸</em>':''}</button>`).join('')}</div></div>`);
+ const h=HEROES[heroId],cards=startingDeck(h),s=deckStats(cards);
+ sheet(`<div class="starter-deck-sheet"><p class="kicker">STARTING DECK</p><h2>${h.name}的初始牌组</h2><div class="starter-deck-summary"><span><b>${cards.length}</b>张牌</span><span><b>${s.units}</b>单位</span><span><b>${s.spells}</b>法术</span><span><b>${s.avg}</b>均费</span></div><div class="starter-deck-grid">${cards.map((c,i)=>`<button class="starter-card" data-starter-card="${i}" aria-label="查看${c.name}">${cardFace(c,'starter-face')}</button>`).join('')}</div></div>`);
  $$('[data-starter-card]').forEach(b=>{const c=cards[+b.dataset.starterCard];bindCardHold(b,c);b.onclick=()=>{if(b._suppressCardClick){b._suppressCardClick=false;return}showCardInspector(c)}})
 }
 
-function openHeroSelect(){if(run&&!run.finished)selectedHero=run.hero;renderHeroes();renderCustomStartSlot();show('hero-view');requestAnimationFrame(()=>$('.hero-choice.selected')?.scrollIntoView({block:'nearest',inline:'center'}))}
-function newRun(){const h=HEROES[selectedHero];run={hero:h.id,hp:h.maxHp,maxHp:h.maxHp,depth:0,deck:startingDeck(h,includeCustomCard),customIncluded:!!(includeCustomCard&&meta.custom),dust:0,relics:[],done:[],finished:false};persist();renderMap();show('map-view')}
+function openHeroSelect(){if(run&&!run.finished)selectedHero=run.hero;renderHeroes();show('hero-view');requestAnimationFrame(()=>$('.hero-choice.selected')?.scrollIntoView({block:'nearest',inline:'center'}))}
+function newRun(){const h=HEROES[selectedHero];run={version:2,hero:h.id,hp:h.maxHp,maxHp:h.maxHp,depth:0,deck:startingDeck(h),dust:0,relics:[],route:createRoute(),history:[],currentRoom:null,finished:false};persist();renderMap();show('map-view')}
 function embark(){if(run&&!run.finished){sheet(`<div class="result-sheet"><div class="result-mark">⚠</div><h2>覆盖当前远征？</h2><p>你在第 ${run.depth+1} 个房间还有一场未完成的远征。开始新远征会覆盖它。</p><button class="btn primary" id="confirm-embark">确认开始新远征</button><button class="btn ghost sheet-close-inline">保留当前远征</button></div>`);setTimeout(()=>$('#confirm-embark').onclick=()=>{closeSheet();newRun()},0);return}newRun()}
-function renderMap(){if(!run)return;const h=hero();$('#floor-num').textContent=Math.min(7,run.depth+1);$('#map-hp').textContent=run.hp;$('#map-portrait').textContent='';$('#map-portrait').classList.add('art-atlas');$('#map-portrait').style.cssText=`border-color:${h.color};${artStyle(h)}`;$('#map-hero-name').textContent=h.name;$('#deck-count').textContent=run.deck.length;$('#relic-count').textContent=run.relics.length;$('#run-dust').textContent=run.dust;$('#dungeon-path').innerHTML=ROOMS.map((r,i)=>`<button class="path-node ${i<run.depth?'done':i===run.depth?'current':'locked'}" style="--node-color:${r.color}" data-room="${i}" ${i!==run.depth?'disabled':''}><span class="path-icon">${i<run.depth?'✓':r.icon}</span><span><b>${r.title}</b><small>${r.sub}</small></span><em>${i===run.depth?'进入':i<run.depth?'完成':'未探索'}</em></button>`).join('');$$('.path-node.current').forEach(b=>b.onclick=()=>enterRoom(+b.dataset.room))}
-function enterRoom(i){const r=ROOMS[i];if(r.type==='battle'||r.type==='elite'||r.type==='boss')startBattle(r);else if(r.type==='event')startEvent();else show('camp-view')}
-function completeRoom(){if(!run.done.includes(run.depth))run.done.push(run.depth);run.depth++;meta.best=Math.max(meta.best,run.depth);persist();renderMap();show('map-view')}
+function renderMap(){
+ if(!run)return;const h=hero(),act=Math.floor(run.depth/5)+1,floor=run.depth%5+1,choices=run.route[run.depth]||[];
+ $('#act-num').textContent=Math.min(3,act);$('#floor-num').textContent=floor;$('#map-title').textContent=['灰烬回廊','熔铁深井','深炉王座'][Math.min(2,act-1)];$('#map-stage-title').textContent=choices.length>1?'两条路，只选一条':'层主挡住了出口';
+ $('#map-hp').textContent=run.hp;$('#map-portrait').textContent='';$('#map-portrait').classList.add('art-atlas');$('#map-portrait').style.cssText=`border-color:${h.color};${artStyle(h)}`;$('#map-hero-name').textContent=h.name;$('#deck-count').textContent=run.deck.length;$('#relic-count').textContent=run.relics.length;$('#run-dust').textContent=run.dust;
+ const trail=Array.from({length:5},(_,i)=>`<i class="${i<floor-1?'done':i===floor-1?'now':''}">${i<floor-1?'✓':i+1}</i>`).join('');
+ $('#dungeon-path').innerHTML=`<div class="floor-trail">${trail}</div><div class="route-choices">${choices.map((r,i)=>`<button class="path-node current" style="--node-color:${r.color}" data-room="${i}"><span class="path-icon">${r.icon}</span><span><b>${r.title}</b><small>${r.sub}</small></span><em>进入</em></button>`).join('')}</div><div class="route-history">${run.history.slice(-4).map(x=>`<span>✓ ${x}</span>`).join('')}</div>`;
+ $$('[data-room]').forEach(b=>b.onclick=()=>enterRoom(+b.dataset.room))
+}
+function enterRoom(i){const r=clone(run.route[run.depth][i]);run.currentRoom=r;persist();if(['battle','elite','boss'].includes(r.type))startBattle(r);else if(r.type==='event')startEvent();else if(r.type==='relic')offerRelic(()=>completeRoom());else show('camp-view')}
+function completeRoom(){if(run.currentRoom)run.history.push(run.currentRoom.title);run.currentRoom=null;run.depth++;meta.best=Math.max(meta.best||0,run.depth);persist();renderMap();show('map-view')}
+function scaledFoe(room){const act=Math.floor(run.depth/5),f=clone(FOES[room.foe]);f.hp+=act*8+(room.type==='elite'?4:0);f.cards=f.cards.map(c=>({...c,atk:c.atk+act,hp:c.hp+act}));f.elite=room.type==='elite';f.boss=room.type==='boss';if(room.title)f.name=room.title;return f}
 
-function makeUnit(c,enemy=false){const amount=effectAmount(c,1);return {...clone(c),maxHp:c.hp,shield:c.effect==='shield'?amount:c.effect==='shield2'?2:0,thorns:c.effect==='thorns'?amount:0,poison:0,enemy}}
-function startBattle(room){const foe=FOES[room.foe];const deck=shuffle(run.deck.map(clone)),opening=run.relics.includes('回响齿轮')?5:4;let hand=deck.splice(0,opening);if(!hand.some(c=>c.cost===1&&cardType(c)==='unit')){const i=deck.findIndex(c=>c.cost===1&&cardType(c)==='unit');if(i>=0)hand[hand.length-1]=deck.splice(i,1,hand[hand.length-1])[0]}battle={room,foe,round:1,maxRound:foe.boss?6:4,playerHp:run.hp,enemyHp:foe.hp,energy:1,deck,hand,discard:[],lanes:[null,null,null],enemyLanes:[null,null,null],selected:null,target:null,reserveShield:0,skillUsed:false,resolving:false,forgePassive:false,relicTriggered:false,sporeDeaths:0};$('#lock-btn').disabled=false;$('#phase').textContent='规划行动';$$('.lane').forEach(x=>x.style.outline='');planEnemy();renderBattle();show('battle-view')}
-function planEnemy(){const affordable=battle.foe.cards.filter(c=>c.cost<=battle.round);battle.enemyPlan={lane:Math.floor(Math.random()*3),card:clone(affordable[Math.floor(Math.random()*affordable.length)])}}
-function renderBattle(){const h=hero(),f=battle.foe;$('#round').textContent=battle.round;$('#max-round').textContent=battle.maxRound;$('#player-name').textContent=h.name;$('#player-portrait').textContent='';$('#player-portrait').style.cssText=`border-color:${h.color};${artStyle(h)}`;$('#player-hp').textContent=Math.max(0,battle.playerHp);$('#player-max-hp').textContent=run.maxHp;$('#player-hp-bar').style.width=`${Math.max(0,battle.playerHp)/run.maxHp*100}%`;$('#enemy-name').textContent=f.name;$('#enemy-portrait').textContent='';$('#enemy-portrait').style.cssText=`border-color:${f.color};${artStyle(f)}`;$('#enemy-hp').textContent=Math.max(0,battle.enemyHp);$('#enemy-max-hp').textContent=f.hp;$('#enemy-hp-bar').style.width=`${Math.max(0,battle.enemyHp)/f.hp*100}%`;$('#intent-text').textContent=`${['左翼','中央','右翼'][battle.enemyPlan.lane]} · ${battle.enemyPlan.card.name}`;$('#energy').textContent=battle.energy;$('#energy-max').textContent=battle.round;$('#skill-icon').textContent=h.skillIcon;$('#skill-name').textContent=h.skill;$('#skill-desc').textContent=h.skillDesc;$('#skill-btn').classList.toggle('used',battle.skillUsed);$('#lock-btn').disabled=battle.resolving;renderHand();renderBoard()}
-function renderHand(){const root=$('#hand');root.innerHTML='';battle.hand.forEach((c,i)=>{const b=document.createElement('button');b.className=`hand-card ${battle.selected===i?'selected':''} ${c.cost>battle.energy?'disabled':''}`;b.innerHTML=cardFace(c,'hand-face');bindCardHold(b,c);b.onclick=()=>{if(b._suppressCardClick){b._suppressCardClick=false;return}selectCard(i)};root.appendChild(b)})}
+function makeUnit(c,enemy=false){const amount=effectAmount(c,1),bonus=!enemy&&run.relics.includes('铁砧吊坠')?1:0;return {...clone(c),hp:c.hp+bonus,maxHp:c.hp+bonus,shield:c.effect==='shield'?amount:c.effect==='shield2'?2:0,thorns:c.effect==='thorns'?amount:0,poison:0,enemy,sourceCard:enemy?null:clone(c)}}
+function reshuffleDiscard(){if(battle.deck.length||!battle.discard.length)return false;battle.deck=shuffle(battle.discard.splice(0));if(run.relics.includes('灰烬瓶'))battle.playerHp=Math.min(run.maxHp,battle.playerHp+1);toast('弃牌堆已洗回牌库');return true}
+function drawCards(n=1){let drawn=0;while(n--&&battle.hand.length<8){if(!battle.deck.length&&!reshuffleDiscard())break;const c=battle.deck.shift();if(c){battle.hand.push(c);drawn++}}return drawn}
+function startBattle(room){const foe=scaledFoe(room),deck=shuffle(run.deck.map(clone)),opening=run.relics.includes('回响齿轮')?5:4;battle={room,foe,round:1,playerHp:run.hp,enemyHp:foe.hp,energy:run.relics.includes('火种核心')?2:1,energyMax:run.relics.includes('火种核心')?2:1,deck,hand:[],discard:[],lanes:[null,null,null],enemyLanes:[null,null,null],selected:null,target:null,reserveShield:0,skillUsed:false,resolving:false,forgePassive:false,relicTriggered:false,sporeDeaths:0};drawCards(opening);if(!battle.hand.some(c=>c.cost===1&&cardType(c)==='unit')){const i=battle.deck.findIndex(c=>c.cost===1&&cardType(c)==='unit');if(i>=0){const old=battle.hand.pop();if(old)battle.deck.push(old);battle.hand.push(battle.deck.splice(i,1)[0])}}$('#lock-btn').disabled=false;$('#phase').textContent='规划行动';$$('.lane').forEach(x=>x.style.outline='');planEnemy();renderBattle();show('battle-view')}
+function planEnemy(){const affordable=battle.foe.cards.filter(c=>c.cost<=Math.min(10,battle.round));const open=battle.enemyLanes.map((u,i)=>u?null:i).filter(i=>i!==null);battle.enemyPlan={lane:(open.length?open[Math.floor(Math.random()*open.length)]:Math.floor(Math.random()*3)),card:clone(affordable[Math.floor(Math.random()*affordable.length)])}}
+function renderBattle(){const h=hero(),f=battle.foe;$('#round').textContent=battle.round;$('#player-name').textContent=h.name;$('#player-portrait').textContent='';$('#player-portrait').style.cssText=`border-color:${h.color};${artStyle(h)}`;$('#player-hp').textContent=Math.max(0,battle.playerHp);$('#player-max-hp').textContent=run.maxHp;$('#player-hp-bar').style.width=`${Math.max(0,battle.playerHp)/run.maxHp*100}%`;$('#enemy-name').textContent=f.name;$('#enemy-portrait').textContent='';$('#enemy-portrait').style.cssText=`border-color:${f.color};${artStyle(f)}`;$('#enemy-hp').textContent=Math.max(0,battle.enemyHp);$('#enemy-max-hp').textContent=f.hp;$('#enemy-hp-bar').style.width=`${Math.max(0,battle.enemyHp)/f.hp*100}%`;$('#intent-text').textContent=`${['左翼','中央','右翼'][battle.enemyPlan.lane]} · ${battle.enemyPlan.card.name}`;$('#energy').textContent=battle.energy;$('#energy-max').textContent=battle.energyMax;$('#draw-count').textContent=battle.deck.length;$('#discard-count').textContent=battle.discard.length;$('#skill-icon').textContent=h.skillIcon;$('#skill-name').textContent=h.skill;$('#skill-desc').textContent=h.skillDesc;$('#skill-btn').classList.toggle('used',battle.skillUsed);$('#lock-btn').disabled=battle.resolving;renderHand();renderBoard()}
+function renderHand(){const root=$('#hand');root.innerHTML='';const mid=(battle.hand.length-1)/2;battle.hand.forEach((c,i)=>{const b=document.createElement('button'),offset=i-mid;b.className=`hand-card ${battle.selected===i?'selected':''} ${c.cost>battle.energy?'disabled':''}`;b.style.setProperty('--fan-angle',`${offset*5.5}deg`);b.style.setProperty('--fan-y',`${Math.abs(offset)*4}px`);b.style.setProperty('--fan-z',i+1);b.innerHTML=cardFace(c,'hand-face');bindCardHold(b,c);b.onclick=()=>{if(b._suppressCardClick){b._suppressCardClick=false;return}selectCard(i)};root.appendChild(b)})}
 function selectCard(i){if(battle.resolving)return;const c=battle.hand[i];if(c.cost>battle.energy)return toast('当前能量不足');battle.selected=battle.selected===i?null:i;battle.target=null;renderHand();renderBoard();toast(battle.selected===null?'已取消选择':cardType(c)==='spell'?'法术已准备，直接锁定即可施放':'再点击一条战线')}
 function unitHtml(u){return u?`<div class="unit ${u.enemy?'foe-unit':''}">${cardFace(u,'board-face')}</div>`:''}
 function renderBoard(){const unitSelected=battle.selected!==null&&cardType(battle.hand[battle.selected])==='unit';$$('.lane').forEach((el,i)=>{el.classList.toggle('ready',unitSelected);el.style.outline=battle.target===i?'2px solid #ffe28a':'';$('.foe',el).innerHTML=unitHtml(battle.enemyLanes[i]);$('.ally',el).innerHTML=unitHtml(battle.lanes[i]);const foeUnit=$('.foe .unit',el),allyUnit=$('.ally .unit',el);if(foeUnit)bindCardHold(foeUnit,battle.enemyLanes[i]);if(allyUnit)bindCardHold(allyUnit,battle.lanes[i]);$('.ally',el).onclick=e=>{if(allyUnit?._suppressCardClick){allyUnit._suppressCardClick=false;return}chooseLane(i)}})}
-function chooseLane(i){if(battle.resolving)return;if(battle.selected===null)return toast('先选择一张手牌');if(cardType(battle.hand[battle.selected])==='spell')return toast('这张法术无需选线，直接锁定即可');battle.target=i;renderBoard();toast(`${battle.hand[battle.selected].name} → ${['左翼','中央','右翼'][i]}`)}
+function chooseLane(i){if(battle.resolving)return;if(battle.selected===null)return toast('先选择一张手牌');if(cardType(battle.hand[battle.selected])==='spell')return toast('法术不需要选线');if(battle.lanes[i])return toast('这条战线已有单位');battle.target=i;renderBoard();toast(`${battle.hand[battle.selected].name} → ${['左翼','中央','右翼'][i]}`)}
 function hurt(u,n){const block=Math.min(u.shield||0,n);u.shield-=block;u.hp-=n-block}
 function deployEffect(u,other,side){if(u.effect==='strike'&&other)hurt(other,effectAmount(u,1));if(u.effect==='strike2'&&other)hurt(other,2);if(u.effect==='heal')battle[side==='player'?'playerHp':'enemyHp']=Math.min(side==='player'?run.maxHp:battle.foe.hp,battle[side==='player'?'playerHp':'enemyHp']+2)}
-function castSpell(c){let msg='法术已经结算。';if(c.effect==='spell_shield_all'){const allies=battle.lanes.filter(Boolean);if(allies.length){allies.forEach(u=>u.shield++);msg=`${allies.length}名友军各获得1点护盾`}else{battle.reserveShield+=2;msg='结界将为下个部署单位提供2点护盾'}}if(c.effect==='spell_poison_all'){const foes=battle.enemyLanes.filter(Boolean);foes.forEach(u=>u.poison++);msg=`${foes.length}名敌军获得1层中毒`}if(c.effect==='spell_shadow'){if(battle.enemyLanes.some(x=>!x)){battle.enemyHp-=2;msg='影隙命中敌方英雄，造成2点伤害'}else if(battle.deck.length&&battle.hand.length<6){battle.hand.push(battle.deck.shift());msg='战线封闭，改为抽取1张牌'}else msg='战线封闭，但牌库已经空了'}battle.discard.push(c);toast(msg)}
+function castSpell(c){let msg='法术已经结算。';if(c.effect==='spell_shield_all'){const allies=battle.lanes.filter(Boolean);if(allies.length){allies.forEach(u=>u.shield++);msg=`${allies.length}名友军获得护盾`}else{battle.reserveShield+=2;msg='下个单位获得2点护盾'}}if(c.effect==='spell_poison_all'){const foes=battle.enemyLanes.filter(Boolean);foes.forEach(u=>u.poison++);msg=`${foes.length}名敌军中毒`}if(c.effect==='spell_shadow'){if(battle.enemyLanes.some(x=>!x)){battle.enemyHp-=2;msg='影隙造成2点伤害'}else if(drawCards(1))msg='抽取1张牌';else msg='没有可抽的牌'}battle.discard.push(c);toast(msg)}
 function deploy(){let spell=null;if(battle.selected!==null){const chosen=battle.hand[battle.selected];if(cardType(chosen)==='spell'||battle.target!==null){const c=battle.hand.splice(battle.selected,1)[0];battle.energy-=c.cost;if(cardType(c)==='spell')spell=c;else{const u=makeUnit(c);if(battle.reserveShield){u.shield+=battle.reserveShield;battle.reserveShield=0}if(hero().id==='forge'&&!battle.forgePassive){u.shield++;battle.forgePassive=true}if(run.relics.includes('余烬棱镜')&&!battle.relicTriggered){u.atk++;battle.relicTriggered=true}battle.lanes[battle.target]=u;deployEffect(u,battle.enemyLanes[battle.target],'player')}}}const p=battle.enemyPlan,u=makeUnit(p.card,true);battle.enemyLanes[p.lane]=u;deployEffect(u,battle.lanes[p.lane],'enemy');if(spell)castSpell(spell);battle.selected=null;battle.target=null;cleanupDeaths()}
-function onDeath(u,isPlayer){if(!u)return;if(isPlayer&&(u.effect==='deathheal'||u.effect==='deathheal2'))battle.playerHp=Math.min(run.maxHp,battle.playerHp+(u.effect==='deathheal2'?2:1));if(isPlayer&&u.effect==='deathblast')battle.enemyHp-=2;if(!isPlayer&&u.effect==='deathblast')battle.playerHp-=2}
+function onDeath(u,isPlayer){if(!u)return;if(isPlayer&&u.sourceCard)battle.discard.push(clone(u.sourceCard));if(isPlayer&&(u.effect==='deathheal'||u.effect==='deathheal2'))battle.playerHp=Math.min(run.maxHp,battle.playerHp+(u.effect==='deathheal2'?2:1));if(isPlayer&&u.effect==='deathblast')battle.enemyHp-=2;if(!isPlayer&&u.effect==='deathblast')battle.playerHp-=2}
 function cleanupDeaths(){[battle.lanes,battle.enemyLanes].forEach((side,si)=>side.forEach((u,i)=>{if(u&&u.hp<=0){onDeath(u,si===0);side[i]=null}}))}
-function attack(){let pd=0,ed=0;const snaps=[0,1,2].map(i=>({i,p:battle.lanes[i],e:battle.enemyLanes[i],pa:battle.lanes[i]?.atk||0,ea:battle.enemyLanes[i]?.atk||0}));snaps.forEach(({p,e,pa,ea})=>{if(p&&e){const ehBefore=e.hp+(e.shield||0),phBefore=p.hp+(p.shield||0);hurt(e,pa);hurt(p,ea);if(e.thorns)hurt(p,e.thorns);if(p.thorns)hurt(e,p.thorns);if(p.effect==='poison')e.poison++;if(p.effect==='poison2')e.poison+=2;if(e.effect==='poison')p.poison++;if(e.effect==='poison2')p.poison+=2;if(p.effect==='pierce'&&pa>ehBefore)ed+=pa-ehBefore;if(e.effect==='pierce'&&ea>phBefore)pd+=ea-phBefore}else if(p&&!e)ed+=pa+(p.effect==='sneak'?1:p.effect==='sneak2'?2:0)+(hero().id==='shadow'?1:0);else if(e&&!p)pd+=ea+(e.effect==='sneak'?1:e.effect==='sneak2'?2:0)});battle.playerHp-=pd;battle.enemyHp-=ed;[battle.lanes,battle.enemyLanes].forEach((side,si)=>side.forEach((u,i)=>{if(!u)return;if(u.poison){hurt(u,u.poison);u.poison=Math.max(0,u.poison-1)}if(u.hp<=0){onDeath(u,si===0);side[i]=null}}));return{pd,ed}}
+function attack(){let pd=0,ed=0;const snaps=[0,1,2].map(i=>({i,p:battle.lanes[i],e:battle.enemyLanes[i],pa:battle.lanes[i]?.atk||0,ea:battle.enemyLanes[i]?.atk||0}));snaps.forEach(({p,e,pa,ea})=>{if(p&&e){const ehBefore=e.hp+(e.shield||0),phBefore=p.hp+(p.shield||0);hurt(e,pa);hurt(p,ea);if(e.thorns)hurt(p,e.thorns);if(p.thorns)hurt(e,p.thorns);if(p.effect==='poison')e.poison++;if(p.effect==='poison2')e.poison+=2;if(e.effect==='poison')p.poison++;if(e.effect==='poison2')p.poison+=2;if(p.effect==='pierce'&&pa>ehBefore)ed+=pa-ehBefore;if(e.effect==='pierce'&&ea>phBefore)pd+=ea-phBefore}else if(p&&!e)ed+=pa+(p.effect==='sneak'?1:p.effect==='sneak2'?2:0)+(hero().id==='shadow'?1:0)+(run.relics.includes('尖牙徽记')?1:0);else if(e&&!p)pd+=ea+(e.effect==='sneak'?1:e.effect==='sneak2'?2:0)});battle.playerHp-=pd;battle.enemyHp-=ed;[battle.lanes,battle.enemyLanes].forEach((side,si)=>side.forEach((u,i)=>{if(!u)return;if(u.poison){hurt(u,u.poison);u.poison=Math.max(0,u.poison-1)}if(u.hp<=0){onDeath(u,si===0);side[i]=null}}));return{pd,ed}}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function damagePopup(target,value,blocked=false,heroHit=false){if(!target||value<=0)return;const p=document.createElement('span');p.className=`damage-pop ${blocked?'blocked':''} ${heroHit?'hero-damage-pop':''}`;p.textContent=`-${value}`;target.appendChild(p)}
 async function playCombatFx(){
@@ -290,13 +299,13 @@ async function playCombatFx(){
  $$('.lane').forEach(l=>l.classList.remove('fx-running'));$$('.clash-burst,.damage-pop').forEach(x=>x.remove());$('.opponent').classList.remove('direct-impact');$('.player').classList.remove('direct-impact');
  return result;
 }
-async function lockTurn(){if(battle.resolving)return;if(battle.selected!==null&&cardType(battle.hand[battle.selected])==='unit'&&battle.target===null)return toast('还没有选择部署战线');battle.resolving=true;$('#lock-btn').disabled=true;$('#phase').textContent='双方行动锁定';await wait(330);$('#phase').textContent='行动揭示';deploy();renderBattle();await wait(420);if(battle.playerHp<=0||battle.enemyHp<=0){if(endCheck())return}$('#phase').textContent='三线交锋';const d=await playCombatFx();renderBattle();if(d.pd||d.ed)toast(`英雄伤害：你 ${d.pd} · 敌 ${d.ed}`);await wait(160);if(endCheck())return;battle.round++;battle.energy=battle.round;if(battle.deck.length&&battle.hand.length<6)battle.hand.push(battle.deck.shift());planEnemy();battle.resolving=false;$('#lock-btn').disabled=false;$('#phase').textContent='规划行动';renderBattle()}
-function boardScore(side){return side.filter(Boolean).reduce((n,u)=>n+u.atk+u.hp+(u.shield||0),0)}
-function endCheck(){if(battle.playerHp>0&&battle.enemyHp>0&&battle.round<battle.maxRound)return false;let win;if(battle.enemyHp<=0)win=true;else if(battle.playerHp<=0)win=false;else{const p=[battle.playerHp,battle.lanes.filter(Boolean).length,boardScore(battle.lanes)],e=[battle.enemyHp,battle.enemyLanes.filter(Boolean).length,boardScore(battle.enemyLanes)];win=p[0]!==e[0]?p[0]>e[0]:p[1]!==e[1]?p[1]>e[1]:p[2]>=e[2]}battle.resolving=true;if(win)battleWin();else battleLose();return true}
+async function lockTurn(){if(battle.resolving)return;if(battle.selected!==null&&cardType(battle.hand[battle.selected])==='unit'&&battle.target===null)return toast('还没有选择部署战线');battle.resolving=true;$('#lock-btn').disabled=true;$('#phase').textContent='行动锁定';await wait(280);$('#phase').textContent='行动揭示';deploy();renderBattle();await wait(390);if(endCheck())return;$('#phase').textContent='三线交锋';const d=await playCombatFx();renderBattle();if(d.pd||d.ed)toast(`英雄伤害：你 ${d.pd} · 敌 ${d.ed}`);await wait(150);if(endCheck())return;battle.round++;battle.energyMax=Math.min(10,battle.round)+(battle.round>=5&&run.relics.includes('钟摆')?1:0);battle.energy=battle.energyMax;drawCards(run.relics.includes('贪婪之眼')?2:1);planEnemy();battle.resolving=false;$('#lock-btn').disabled=false;$('#phase').textContent='规划行动';renderBattle()}
+function endCheck(){if(battle.enemyHp>0&&battle.playerHp>0)return false;battle.resolving=true;if(battle.enemyHp<=0)battleWin();else battleLose();return true}
 function useSkill(){if(battle.skillUsed||battle.resolving)return;const id=hero().id;if(id==='forge'){const ids=battle.lanes.map((u,i)=>u?i:-1).filter(i=>i>=0);if(!ids.length)return toast('场上没有友方单位');const i=ids.sort((a,b)=>battle.lanes[a].hp-battle.lanes[b].hp)[0];battle.lanes[i].shield+=2;toast(`${battle.lanes[i].name} 获得2点护盾`)}else if(id==='spore'){const foes=battle.enemyLanes.filter(Boolean);if(!foes.length)return toast('敌方场上没有单位');foes.forEach(u=>u.poison++);toast('所有敌军中毒1')}else{if(!battle.enemyLanes.some(x=>!x))return toast('敌方没有暴露空线');battle.enemyHp-=2;toast('逐影者穿过空线造成2点伤害')}battle.skillUsed=true;renderBattle();endCheck()}
-function awardEliteRelic(){const pool=['铸甲碎片','回响齿轮','余烬棱镜'].filter(x=>!run.relics.includes(x)),r=pool[Math.floor(Math.random()*pool.length)]||'铸甲碎片';run.relics.push(r);if(r==='铸甲碎片'){run.maxHp+=3;run.hp+=3}toast(`获得遗物：${r}`)}
-function battleWin(){run.hp=Math.max(1,battle.playerHp);const base=battle.foe.boss?60:battle.foe.elite?30:15;run.dust+=base;if(battle.foe.elite)awardEliteRelic();persist();if(battle.foe.boss){run.finished=true;meta.dust+=run.dust;meta.clears++;meta.best=7;persist();sheet(`<div class="result-sheet"><div class="result-mark">♛</div><p class="kicker">DUNGEON CLEARED</p><h2>深炉已经屈服</h2><p>你带着 ${run.dust} 晶尘和 ${run.relics.length} 件遗物回到地表。这次构筑成功穿过了全部七个房间。</p><button class="btn primary" id="victory-home">带着战利品回城</button></div>`);setTimeout(()=>$('#victory-home').onclick=()=>{closeSheet();run=null;persist();show('home-view')},0)}else{prepareReward(base);show('reward-view')}}
-function battleLose(){const carried=Math.floor(run.dust*.55);meta.dust+=carried;run.finished=true;persist();sheet(`<div class="result-sheet"><div class="result-mark">◆</div><p class="kicker">THE RUN ENDS</p><h2>远征止步于第 ${run.depth+1} 个房间</h2><p>你没能继续深入，但仍抢救回 ${carried} 晶尘。下一次可以换英雄或重新铸一张起始牌。</p><button class="btn primary" id="lose-home">返回地表</button><button class="btn ghost" id="retry-run">同一英雄再试一次</button></div>`);setTimeout(()=>{$('#lose-home').onclick=()=>{closeSheet();run=null;persist();show('home-view')};$('#retry-run').onclick=()=>{const h=run.hero;closeSheet();run=null;selectedHero=h;newRun()}},0)}
+function gainRelic(name){if(run.relics.includes(name))return;run.relics.push(name);RELICS.find(r=>r.name===name)?.onGain?.();persist()}
+function offerRelic(done=completeRoom){const pool=shuffle(RELICS.filter(r=>!run.relics.includes(r.name))).slice(0,3);if(!pool.length){run.dust+=30;done();return}sheet(`<div class="relic-sheet"><p class="kicker">RELIC FOUND</p><h2>选择一件遗物</h2><div class="relic-options">${pool.map((r,i)=>`<button data-relic="${i}"><i>◆</i><b>${r.name}</b><span>${r.desc}</span></button>`).join('')}</div></div>`);setTimeout(()=>$$('[data-relic]').forEach(b=>b.onclick=()=>{gainRelic(pool[+b.dataset.relic].name);closeSheet();done()}),0)}
+function battleWin(){run.hp=Math.max(1,battle.playerHp);if(run.relics.includes('血煤'))run.hp=Math.min(run.maxHp,run.hp+2);const base=battle.foe.boss?60:battle.foe.elite?30:15;run.dust+=base;persist();const finalBoss=battle.foe.boss&&run.depth===TOTAL_FLOORS-1;if(finalBoss){run.finished=true;run.depth=TOTAL_FLOORS;meta.dust+=run.dust;meta.clears++;meta.best=TOTAL_FLOORS;persist();sheet(`<div class="result-sheet"><div class="result-mark">♛</div><p class="kicker">DUNGEON CLEARED</p><h2>深炉已经屈服</h2><p>${run.dust} 晶尘 · ${run.relics.length} 件遗物</p><button class="btn primary" id="victory-home">返回地表</button></div>`);setTimeout(()=>$('#victory-home').onclick=()=>{closeSheet();run=null;persist();show('home-view')},0)}else if(battle.foe.elite||battle.foe.boss)offerRelic(()=>completeRoom());else{prepareReward(base);show('reward-view')}}
+function battleLose(){const carried=Math.floor(run.dust*.55);meta.dust+=carried;run.finished=true;persist();sheet(`<div class="result-sheet"><div class="result-mark">◆</div><p class="kicker">THE RUN ENDS</p><h2>止步第 ${run.depth+1} 个房间</h2><p>带回 ${carried} 晶尘</p><button class="btn primary" id="lose-home">返回地表</button><button class="btn ghost" id="retry-run">再次挑战</button></div>`);setTimeout(()=>{$('#lose-home').onclick=()=>{closeSheet();run=null;persist();show('home-view')};$('#retry-run').onclick=()=>{const h=run.hero;closeSheet();run=null;selectedHero=h;newRun()}},0)}
 
 function rewardPool(){return shuffle([...heroCardPool(hero()),...NEUTRAL]).slice(0,3).map(clone)}
 function prepareReward(dust){$('#reward-dust').textContent=dust;const cards=rewardPool();$('#reward-cards').innerHTML=cards.map((c,i)=>`<button class="reward-card" data-reward="${i}" aria-label="选择${c.name}">${cardFace(c,'reward-face')}</button>`).join('');$$('.reward-card').forEach(b=>{const c=cards[+b.dataset.reward];bindCardHold(b,c);b.onclick=()=>{if(b._suppressCardClick){b._suppressCardClick=false;return}run.deck.push(c);finishReward()}})}
@@ -304,7 +313,7 @@ function finishReward(){persist();completeRoom()}
 function startEvent(){const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];$('#event-title').textContent=e.title;$('#event-body').textContent=e.body;$('#event-choices').innerHTML=e.choices.map(c=>`<button class="choice" data-event="${c.action}"><span><b>${c.title}</b><span>${c.desc}</span></span><em>${c.tag}</em></button>`).join('');$$('[data-event]').forEach(b=>b.onclick=()=>resolveEvent(b.dataset.event));show('event-view')}
 function addRandomCard(effect){let pool=[...heroCardPool(hero()),...NEUTRAL].filter(c=>!effect||c.effect.includes(effect));if(!pool.length&&effect)pool=[...heroCardPool(HEROES.spore)].filter(c=>c.effect.includes(effect));run.deck.push(clone(pool[Math.floor(Math.random()*pool.length)]))}
 function removeWeak(){if(run.deck.length<=5)return null;let i=run.deck.reduce((best,c,n)=>c.cost<run.deck[best].cost?n:best,0);return run.deck.splice(i,1)[0]}
-function resolveEvent(a){let msg='';if(a==='buyCard'){if(run.dust>=20){run.dust-=20;addRandomCard();msg='铸造台吐出一张完整卡牌。'}else{run.hp=Math.max(1,run.hp-2);msg='晶尘不足，机器抽走了2点生命。'}}if(a==='scrap'){run.dust+=25;run.hp=Math.max(1,run.hp-3);msg='你带走25晶尘，锋利零件划伤了手。'}if(a==='memory'){const c=removeWeak();run.maxHp+=2;run.hp+=2;msg=`${c?.name||'一段记忆'}消失了，最大生命+2。`}if(a==='poisonCard'){addRandomCard('poison');run.hp=Math.max(1,run.hp-2);msg='一张带毒卡牌加入牌组。'}if(a==='burn'){run.dust+=12;msg='菌毯尖叫着化为12晶尘。'}if(a==='chest'){if(Math.random()<.5){run.relics.push('倒悬齿轮');run.maxHp+=3;run.hp+=3;msg='获得遗物「倒悬齿轮」：最大生命+3。'}else{run.hp=Math.max(1,run.hp-5);msg='货箱里只有一只饥饿怪物，你受到了5点伤害。'}}if(a==='cut'){run.dust+=18;run.hp=Math.min(run.maxHp,run.hp+2);msg='商队残骸落地，找到18晶尘。'}if(a==='leave')msg='你保持警惕，安全离开。';persist();sheet(`<div class="result-sheet"><div class="result-mark">◆</div><h2>选择已生效</h2><p>${msg}</p><button class="btn primary" id="event-next">继续深入</button></div>`);setTimeout(()=>$('#event-next').onclick=()=>{closeSheet();completeRoom()},0)}
+function resolveEvent(a){let msg='';if(a==='buyCard'){if(run.dust>=20){run.dust-=20;addRandomCard();msg='获得一张卡牌。'}else{run.hp=Math.max(1,run.hp-2);msg='晶尘不足，失去2点生命。'}}if(a==='scrap'){run.dust+=25;run.hp=Math.max(1,run.hp-3);msg='+25晶尘，-3生命。'}if(a==='memory'){const c=removeWeak();run.maxHp+=2;run.hp+=2;msg=`移除${c?.name||'一张牌'}，最大生命+2。`}if(a==='poisonCard'){addRandomCard('poison');run.hp=Math.max(1,run.hp-2);msg='获得带毒卡牌，-2生命。'}if(a==='burn'){run.dust+=12;msg='+12晶尘。'}if(a==='chest'){if(Math.random()<.5){const relic=shuffle(RELICS.filter(r=>!run.relics.includes(r.name)))[0];if(relic){gainRelic(relic.name);msg=`获得遗物「${relic.name}」。`}else{run.dust+=30;msg='+30晶尘。'}}else{run.hp=Math.max(1,run.hp-5);msg='陷阱！-5生命。'}}if(a==='cut'){run.dust+=18;run.hp=Math.min(run.maxHp,run.hp+2);msg='+18晶尘，+2生命。'}if(a==='leave')msg='安全离开。';persist();sheet(`<div class="result-sheet"><div class="result-mark">◆</div><h2>完成</h2><p>${msg}</p><button class="btn primary" id="event-next">继续深入</button></div>`);setTimeout(()=>$('#event-next').onclick=()=>{closeSheet();completeRoom()},0)}
 function camp(a){let msg='';if(a==='heal'){const n=Math.ceil(run.maxHp*.35);run.hp=Math.min(run.maxHp,run.hp+n);msg=`恢复了 ${n} 点生命。`}if(a==='upgrade'){const candidates=run.deck.filter(c=>cardType(c)==='unit'&&!c.upgraded);const c=candidates[Math.floor(Math.random()*candidates.length)]||run.deck.find(c=>cardType(c)==='unit');if(c){c.atk++;c.hp++;c.upgraded=true;c.name+=' +';msg=`${c.name} 获得 +1/+1。`}else msg='牌组里没有可以锻打的单位牌。'}if(a==='remove'){const c=removeWeak();msg=c?`已从牌组移除 ${c.name}。`:'牌组太薄，无法继续移除。'}persist();sheet(`<div class="result-sheet"><div class="result-mark">♨</div><h2>营火渐渐熄灭</h2><p>${msg}</p><button class="btn primary" id="camp-next">继续深入</button></div>`);setTimeout(()=>$('#camp-next').onclick=()=>{closeSheet();completeRoom()},0)}
 
 function showDeck(){const s=deckStats(run.deck);sheet(`<p class="kicker">CURRENT DECK</p><h2>${hero().name}的远征牌组</h2><p>${run.deck.length}张牌 · ${s.units}单位 / ${s.spells}法术。带“+”的是营火强化牌。</p><div class="deck-list">${run.deck.slice().sort((a,b)=>a.cost-b.cost).map(c=>`<div class="deck-row"><span class="deck-art art-atlas" style="${artStyle(c)}"><i>${c.cost}</i></span><span><b>${c.name}</b><small>${rulesText(c)}</small></span><em>${cardType(c)==='spell'?'✧ 法术':`⚔${c.atk} ♥${c.hp}`}</em></div>`).join('')}</div>`)}
@@ -326,63 +335,15 @@ function renderLibrary(filter='all'){
  $$('#library-filters button').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter));
 }
 
-function forgeUpdate(){
- const cost=+$('#forge-cost-input').value;
- const atk=+$('#forge-atk').value;
- const hp=+$('#forge-hp').value;
- const e=$('.forge-effects .active').dataset.effect;
- const config=FORGE_EFFECT_CONFIG[e];
- const amount=e==='none'?0:Math.max(1,Math.min(4,forgeEffectValues[e]||1));
- forgeEffectValues[e]=amount;
- const max={1:3,2:6,3:9,4:13}[cost];
- const used=atk+hp+amount*config.rate;
- const card={id:'CUSTOM',name:$('#forge-name').value||'未命名',cost,atk,hp,effect:e,effectValue:amount,text:config.rule(amount),custom:true};
- const valueRow=$('#forge-effect-value-row');
- valueRow.hidden=e==='none';
- $('#forge-effect-value-name').textContent=config.label;
- $('#forge-effect-value-hint').textContent=e==='none'?config.hint:`${config.hint} · 每点占${config.rate}预算`;
- $('#forge-effect-value').textContent=amount;
- $('#forge-effect-minus').disabled=e==='none'||amount<=1;
- $('#forge-effect-plus').disabled=e==='none'||amount>=4;
- $('#forge-preview').innerHTML=cardFace(card,'forge-face');
- $('#used-budget').textContent=used;
- $('#max-budget').textContent=max;
- $('#budget-bar').style.width=`${Math.min(100,used/max*100)}%`;
- $('#budget-bar').style.background=used>max?'#dc6858':'linear-gradient(90deg,#38c7bc,#df9b43)';
- $('#save-forge').disabled=used>max;
- return card
-}
+function showRelics(){const owned=RELICS.filter(r=>run.relics.includes(r.name));sheet(`<p class="kicker">RELICS</p><h2>遗物 ${owned.length}</h2><div class="relic-list">${owned.length?owned.map(r=>`<div><i>◆</i><span><b>${r.name}</b><small>${r.desc}</small></span></div>`).join(''):'<p>尚未获得遗物</p>'}</div>`)}
 
-function returnFromForge(){if(forgeReturnView==='hero-view'){includeCustomCard=!!meta.custom;renderHeroes();renderCustomStartSlot();show('hero-view')}else show('home-view')}
-function openForge(returnView='home-view'){
- forgeReturnView=returnView;
- if(meta.custom){
-  const saved=meta.custom,e=FORGE_EFFECT_CONFIG[saved.effect]?saved.effect:'shield';
-  $('#forge-name').value=saved.name||'';
-  $('#forge-cost-input').value=saved.cost;
-  $('#forge-atk').value=saved.atk;
-  $('#forge-hp').value=saved.hp;
-  $$('.forge-effects button').forEach(b=>b.classList.toggle('active',b.dataset.effect===e));
-  if(e!=='none')forgeEffectValues[e]=Math.min(4,effectAmount(saved,1));
- }
- forgeUpdate();
- $('#forge-back').onclick=returnFromForge;
- show('forge-view')
-}
-
-$('#new-run-btn').onclick=openHeroSelect;$('#embark-btn').onclick=embark;$('#continue-btn').onclick=()=>{renderMap();show('map-view')};$('#open-forge-btn').onclick=()=>openForge();
+$('#new-run-btn').onclick=openHeroSelect;$('#embark-btn').onclick=embark;$('#continue-btn').onclick=()=>{renderMap();show('map-view')};
 $('#open-library-btn').onclick=()=>{renderLibrary('all');show('library-view')};$$('#library-filters button').forEach(b=>b.onclick=()=>renderLibrary(b.dataset.filter));
 $$('[data-home]').forEach(b=>b.onclick=()=>show('home-view'));$$('[data-map]').forEach(b=>b.onclick=()=>{renderMap();show('map-view')});
-$('#lock-btn').onclick=lockTurn;$('#skill-btn').onclick=useSkill;$('#deck-peek').onclick=showDeck;$('#skip-reward').onclick=()=>{run.dust+=10;finishReward()};
+$('#lock-btn').onclick=lockTurn;$('#skill-btn').onclick=useSkill;$('#deck-peek').onclick=showDeck;$('#relic-peek').onclick=showRelics;$('#skip-reward').onclick=()=>{run.dust+=10;finishReward()};
 $$('[data-camp]').forEach(b=>b.onclick=()=>camp(b.dataset.camp));
-$('#battle-help').onclick=()=>sheet(`<p class="kicker">HOW TO PLAY</p><h2>三线同步战斗</h2><p>每回合至多打出一张牌：单位牌需要选择战线，法术牌选择后可直接锁定。敌我行动同时揭示，同线单位互相攻击，空线单位直击英雄。普通战斗和精英战斗最多4回合，首领战最多6回合；时间结束后依次比较英雄生命、占线数与场面分。</p><button class="btn primary sheet-close-inline">明白了</button>`);
+$('#battle-help').onclick=()=>sheet(`<p class="kicker">BATTLE</p><h2>击杀怪物</h2><div class="battle-rules"><b>单位</b><span>选牌，再选战线</span><b>法术</b><span>选牌，直接锁定</span><b>循环</b><span>阵亡与法术进入弃牌堆，牌库空时洗回</span></div><button class="btn primary sheet-close-inline">继续</button>`);
 $('.sheet-close').onclick=closeSheet;$('#sheet').onclick=e=>{if(e.target===$('#sheet'))closeSheet()};document.addEventListener('click',e=>{if(e.target.classList.contains('sheet-close-inline'))closeSheet()});
 $('#inspector-backdrop').onclick=closeCardInspector;$('#inspector-close').onclick=closeCardInspector;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCardInspector()});
-$$('#forge-name,#forge-cost-input,#forge-atk,#forge-hp').forEach(x=>x.addEventListener('input',forgeUpdate));
-$$('.forge-effects button').forEach(b=>b.onclick=()=>{$$('.forge-effects button').forEach(x=>x.classList.remove('active'));b.classList.add('active');forgeUpdate()});
-$('#forge-effect-minus').onclick=()=>{const e=$('.forge-effects .active').dataset.effect;if(e==='none')return;forgeEffectValues[e]=Math.max(1,(forgeEffectValues[e]||1)-1);forgeUpdate()};
-$('#forge-effect-plus').onclick=()=>{const e=$('.forge-effects .active').dataset.effect;if(e==='none')return;forgeEffectValues[e]=Math.min(4,(forgeEffectValues[e]||1)+1);forgeUpdate()};
-$('#save-forge').onclick=()=>{meta.custom=forgeUpdate();includeCustomCard=true;persist();const label=forgeReturnView==='hero-view'?'返回远征准备':'返回地表';sheet(`<div class="result-sheet"><div class="result-mark">✦</div><h2>${meta.custom.name} 已保存</h2><p>它会出现在远征准备页的自铸牌槽中；你可以为每次新远征决定是否携带。</p><button class="btn primary" id="forge-home">${label}</button></div>`);setTimeout(()=>$('#forge-home').onclick=()=>{closeSheet();returnFromForge()},0)};
-
 renderHeroes();renderMeta();if(run&&!run.finished)$('#continue-btn').hidden=false;

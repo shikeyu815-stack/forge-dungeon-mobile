@@ -46,7 +46,7 @@ test("serves the complete mobile game at the site root", async () => {
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
 
   const html = await response.text();
-  assert.match(html, /<title>炉痕地牢 · 完整试玩版<\/title>/i);
+  assert.match(html, /<title>炉痕地牢 · 三层远征<\/title>/i);
   assert.match(html, /id="home-view"/);
   assert.match(html, /id="hero-view"/);
   assert.match(html, /viewport-fit=cover/);
@@ -54,12 +54,20 @@ test("serves the complete mobile game at the site root", async () => {
   assert.match(html, /complete\.js/);
 });
 
-test("ships game logic, hero deck preview, spells and every atlas", async () => {
+test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   const gameJs = await readFile(new URL("../dist/client/complete.js", import.meta.url), "utf8");
   const polishCss = await readFile(new URL("../dist/client/polish.css", import.meta.url), "utf8");
   assert.match(gameJs, /const HERO_SPELLS=/);
   assert.match(gameJs, /function showStartingDeck/);
   assert.match(gameJs, /localStorage/);
+  assert.match(gameJs, /const TOTAL_FLOORS=15/);
+  assert.match(gameJs, /function createRoute/);
+  assert.match(gameJs, /function offerRelic/);
+  assert.match(gameJs, /function reshuffleDiscard/);
+  assert.match(gameJs, /function drawCards/);
+  assert.match(gameJs, /function endCheck\(\)\{if\(battle\.enemyHp>0&&battle\.playerHp>0\)return false/);
+  assert.doesNotMatch(gameJs, /maxRound|boardScore|forgeUpdate|includeCustomCard/);
+  assert.match(gameJs, /--fan-angle/);
   assert.match(gameJs, /function startBattle[\s\S]*?\$\('#lock-btn'\)\.disabled=false/);
   assert.match(gameJs, /function startBattle[\s\S]*?\$\('#phase'\)\.textContent='规划行动'/);
   assert.match(gameJs, /\$\('#lock-btn'\)\.disabled=battle\.resolving/);
@@ -75,6 +83,8 @@ test("ships game logic, hero deck preview, spells and every atlas", async () => 
     "dist/client/assets/card-art-player-v2.png",
     "dist/client/assets/card-art-neutral-enemy-v2.png",
     "dist/client/assets/card-art-boss-v2.png",
+    "dist/client/assets/battle-arena-bg-v1.png",
+    "dist/client/assets/dungeon-map-bg-v1.png",
   ]) {
     await access(new URL(path, root));
   }
