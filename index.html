@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="polish.css?v=20260717e" />
   <link rel="stylesheet" href="flow.css?v=20260717e" />
   <link rel="stylesheet" href="commercial.css?v=20260717e" />
+  <link rel="stylesheet" href="battle-stage.css?v=20260717i" />
 </head>
 <body>
   <main id="game">
@@ -73,6 +74,7 @@
     </section>
 
     <section class="view" id="battle-view">
+      <div class="battle-stage">
       <header class="battlebar">
         <div class="round"><small>回合</small><b id="round">1</b></div>
         <div class="phase"><i></i><span id="phase">规划行动</span></div>
@@ -85,6 +87,34 @@
         <div class="enemy-plan"><small>意图</small><b id="intent-text">左线部署</b></div>
       </div>
       <div class="battlefield">
+        <svg class="arena-geometry" viewBox="0 0 390 440" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="floorWash" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12100e" stop-opacity=".18"/><stop offset=".52" stop-color="#342116" stop-opacity=".42"/><stop offset="1" stop-color="#090706" stop-opacity=".82"/></linearGradient>
+            <linearGradient id="railMetal" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#3a2819"/><stop offset=".22" stop-color="#b17b3e"/><stop offset=".5" stop-color="#4e321d"/><stop offset=".78" stop-color="#c09152"/><stop offset="1" stop-color="#261910"/></linearGradient>
+            <radialGradient id="socketStone"><stop offset="0" stop-color="#32261c"/><stop offset=".62" stop-color="#15110e"/><stop offset="1" stop-color="#050403"/></radialGradient>
+            <radialGradient id="forgeSeal"><stop stop-color="#ffb24c" stop-opacity=".5"/><stop offset=".38" stop-color="#8e471e" stop-opacity=".3"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+            <filter id="railGlow"><feGaussianBlur stdDeviation="2.4"/></filter>
+          </defs>
+          <path class="arena-floor" d="M18 16 Q195 -12 372 16 L390 424 Q195 454 0 424Z" fill="url(#floorWash)"/>
+          <ellipse class="seal-glow" cx="195" cy="220" rx="75" ry="44" fill="url(#forgeSeal)"/>
+          <g class="lane-rail-glow" filter="url(#railGlow)" opacity=".22">
+            <path d="M65 32 L65 406"/><path d="M195 22 L195 416"/><path d="M325 32 L325 406"/>
+          </g>
+          <g class="lane-rails">
+            <path d="M65 30 L65 410"/><path d="M195 20 L195 420"/><path d="M325 30 L325 410"/>
+          </g>
+          <g class="arena-sockets foe-sockets">
+            <g transform="translate(65 175)"><ellipse rx="49" ry="17"/><path d="M-42 0L-30-12H30L42 0L30 12H-30Z"/></g>
+            <g transform="translate(195 175)"><ellipse rx="49" ry="17"/><path d="M-42 0L-30-12H30L42 0L30 12H-30Z"/></g>
+            <g transform="translate(325 175)"><ellipse rx="49" ry="17"/><path d="M-42 0L-30-12H30L42 0L30 12H-30Z"/></g>
+          </g>
+          <g class="arena-sockets ally-sockets">
+            <g transform="translate(65 405)"><ellipse rx="53" ry="19"/><path d="M-45 0L-32-13H32L45 0L32 13H-32Z"/></g>
+            <g transform="translate(195 405)"><ellipse rx="53" ry="19"/><path d="M-45 0L-32-13H32L45 0L32 13H-32Z"/></g>
+            <g transform="translate(325 405)"><ellipse rx="53" ry="19"/><path d="M-45 0L-32-13H32L45 0L32 13H-32Z"/></g>
+          </g>
+          <g class="center-seal" transform="translate(195 220)"><circle r="24"/><path d="M0-18L8-8L18 0L8 8L0 18L-8 8L-18 0L-8-8Z"/><circle r="6"/></g>
+        </svg>
         <div class="lane-names"><span>左翼</span><span>中央</span><span>右翼</span></div>
         <div class="lanes" id="lanes">
           <div class="lane" data-lane="0"><div class="slot foe"></div><div class="lane-mark">Ⅰ</div><button class="slot ally" aria-label="部署到左翼"></button></div>
@@ -97,6 +127,7 @@
         <div class="hero-meta"><strong id="player-name">铸炉者</strong><div class="hp-track"><i id="player-hp-bar"></i></div></div>
         <b class="hp-number"><span id="player-hp">24</span>/<small id="player-max-hp">24</small></b>
         <button class="skill" id="skill-btn"><span id="skill-icon">◇</span><b id="skill-name">炉心守护</b><small id="skill-desc">本局一次</small></button>
+      </div>
       </div>
       <div class="hand-dock">
         <div class="pile-count draw-pile"><b id="draw-count">0</b><small>牌库</small></div>
@@ -162,6 +193,6 @@
     </div>
   </div>
   <div class="sheet" id="sheet"><div class="sheet-card"><button class="sheet-close">×</button><div id="sheet-content"></div></div></div>
-  <script src="complete.js?v=20260717e"></script>
+  <script src="complete.js?v=20260717i"></script>
 </body>
 </html>

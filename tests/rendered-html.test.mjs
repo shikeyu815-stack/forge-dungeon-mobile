@@ -58,6 +58,7 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   const gameJs = await readFile(new URL("../dist/client/complete.js", import.meta.url), "utf8");
   const polishCss = await readFile(new URL("../dist/client/polish.css", import.meta.url), "utf8");
   const commercialCss = await readFile(new URL("../dist/client/commercial.css", import.meta.url), "utf8");
+  const battleStageCss = await readFile(new URL("../dist/client/battle-stage.css", import.meta.url), "utf8");
   assert.match(gameJs, /const HERO_SPELLS=/);
   assert.match(gameJs, /function showStartingDeck/);
   assert.match(gameJs, /localStorage/);
@@ -76,6 +77,8 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   assert.match(polishCss, /width:min\(100cqw,calc\(100cqh \* \.7142857\)\)/);
   assert.match(commercialCss, /battle-arena-bg-v2\.webp/);
   assert.match(commercialCss, /#battle-view \.hand/);
+  assert.match(battleStageCss, /\.arena-geometry/);
+  assert.match(battleStageCss, /\.battle-stage/);
 
   for (const path of [
     "dist/.openai/hosting.json",
@@ -83,6 +86,7 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
     "dist/client/polish.css",
     "dist/client/flow.css",
     "dist/client/commercial.css",
+    "dist/client/battle-stage.css",
     "dist/client/og.png",
     "dist/client/assets/card-art-atlas-v1.png",
     "dist/client/assets/card-art-player-v2.png",

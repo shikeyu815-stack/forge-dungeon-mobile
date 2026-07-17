@@ -1,0 +1,75 @@
+/* Integrated battle stage: one coordinate system for environment, sockets and HUD. */
+#battle-view.active{--dock-h:172px;display:block;position:relative;height:100dvh;min-height:0;overflow:hidden;background:#050403}
+#battle-view .battle-stage{position:absolute;z-index:1;inset:0 0 calc(var(--dock-h) + var(--safe-b)) 0;overflow:hidden;isolation:isolate;background:linear-gradient(180deg,#0303038f 0%,#0c09069c 18%,#17100a4d 54%,#080604e6 100%),url("assets/battle-arena-bg-v2.webp") center 24%/cover no-repeat;box-shadow:inset 0 -28px 55px #000}
+#battle-view .battle-stage:before{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 50% 58%,#d8792822 0 14%,transparent 52%),linear-gradient(90deg,#0009,transparent 17% 83%,#0009);pointer-events:none}
+#battle-view .battle-stage:after{content:"";position:absolute;z-index:8;left:6%;right:6%;bottom:-14px;height:58px;border-radius:50%;background:radial-gradient(ellipse,#e58c3027,transparent 68%);filter:blur(7px);mix-blend-mode:screen;pointer-events:none;animation:stageBreath 3.6s ease-in-out infinite alternate}
+@keyframes stageBreath{from{opacity:.45;transform:scaleX(.94)}to{opacity:.9;transform:scaleX(1.04)}}
+
+/* HUD plates are mounted to the stage rather than spanning it as web bars. */
+#battle-view .battlebar{position:absolute;z-index:30;left:8px;right:8px;top:var(--safe-t);height:44px;padding:0;display:grid;grid-template-columns:58px 1fr 42px;border:0;background:none;box-shadow:none;backdrop-filter:none}
+#battle-view .round{width:54px;height:42px;justify-content:center;align-items:center;gap:3px;clip-path:polygon(12% 0,88% 0,100% 50%,88% 100%,12% 100%,0 50%);background:linear-gradient(180deg,#4c3522,#160f0a 58%,#080604);box-shadow:inset 0 0 0 1px #b58a534d;filter:drop-shadow(0 5px 6px #000)}
+#battle-view .round small{font-size:6px;letter-spacing:.08em;color:#a89170}#battle-view .round b{font:900 20px Georgia,serif;color:#f0d6a8;text-shadow:0 2px 3px #000}
+#battle-view .phase{justify-self:center;align-self:center;height:28px;padding:0 16px;clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,9px 100%,0 50%);background:linear-gradient(180deg,#183d39d9,#071c1be8);box-shadow:inset 0 0 0 1px #50b9ae4d;color:#78ddd4;text-shadow:0 2px 2px #000}
+#battle-view .phase>i{width:5px;height:5px}
+#battle-view .battlebar .square{width:40px;height:40px;border:0;border-radius:0;clip-path:polygon(22% 0,78% 0,100% 22%,100% 78%,78% 100%,22% 100%,0 78%,0 22%);background:linear-gradient(145deg,#59442c,#19110a 48%,#090604);box-shadow:inset 0 0 0 2px #8c6d4555;filter:drop-shadow(0 4px 5px #000);color:#d6bc91;font:900 15px Georgia,serif}
+
+#battle-view .hero-row{position:absolute;z-index:24;left:12px;right:12px;height:55px;padding:5px 10px 5px 8px;border:0;background:linear-gradient(90deg,#100b08ed 0%,#2b1c12d9 42%,#0a0705e8 100%);clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,8px 100%,0 50%);box-shadow:inset 0 1px #c59b5a35,inset 0 -1px #000,0 8px 16px #0009;backdrop-filter:blur(4px)}
+#battle-view .opponent{top:calc(var(--safe-t) + 46px)}
+#battle-view .player{bottom:5px;background:linear-gradient(90deg,#0c0907ed,#241a13e6 48%,#090706ee)}
+#battle-view .hero-row:before{content:"";position:absolute;inset:3px 7px;clip-path:inherit;border-block:1px solid #9573442e;pointer-events:none}
+#battle-view .portrait{width:44px;height:44px;border:2px solid #8d683d;box-shadow:0 0 0 3px #130d08,0 0 0 4px #8f693c66,0 5px 9px #000,inset 0 0 12px #0007;filter:saturate(.82) sepia(.08)}
+#battle-view .hero-meta{width:112px}.hero-meta strong{font-family:Georgia,"STKaiti",serif;font-size:11px;letter-spacing:.04em;color:#e6d2ae}
+#battle-view .hp-track{height:7px;padding:1px;border-radius:0;clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%);background:#070403;box-shadow:inset 0 0 0 1px #83613d55}
+#battle-view .hp-track i{border-radius:0;box-shadow:0 0 8px currentColor}
+#battle-view .hp-number{color:#ead9bb;font:900 11px Georgia,serif;text-shadow:0 2px #000}
+#battle-view .enemy-plan{min-width:108px;margin-left:auto;padding:5px 8px;border-left:0;background:#08060480;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+#battle-view .enemy-plan small{font-size:6px;letter-spacing:.15em}#battle-view .enemy-plan b{font-size:8px;color:#d4c3a5}
+#battle-view .skill{min-width:111px;height:40px;border:0;border-radius:0;clip-path:polygon(9px 0,100% 0,100% 100%,9px 100%,0 50%);background:linear-gradient(90deg,#20160ed9,#0c0906);box-shadow:inset 0 0 0 1px #8d6c424d}
+
+/* The battlefield surface and the DOM lanes share the same normalized rectangle. */
+#battle-view .battlefield{position:absolute;z-index:10;left:0;right:0;top:calc(var(--safe-t) + 101px);bottom:58px;min-height:0;padding:0 8px 4px;display:grid;grid-template-rows:16px minmax(0,1fr);overflow:visible;border:0;background:none;box-shadow:none;backdrop-filter:none}
+#battle-view .arena-geometry{position:absolute;z-index:0;left:0;right:0;top:8px;width:100%;height:calc(100% - 8px);overflow:visible;pointer-events:none}
+#battle-view .arena-floor{stroke:#7b59362e;stroke-width:1}
+#battle-view .lane-rail-glow path{fill:none;stroke:#f09b3e;stroke-width:6}
+#battle-view .lane-rails path{fill:none;stroke:url(#railMetal);stroke-width:2.2;filter:drop-shadow(0 2px 2px #000)}
+#battle-view .arena-sockets ellipse{fill:#050403;opacity:.13;filter:blur(1px)}
+#battle-view .arena-sockets path{fill:#120d08;fill-opacity:.18;stroke:url(#railMetal);stroke-width:.9;opacity:.55}
+#battle-view .ally-sockets path{stroke:#8f673a}.foe-sockets path{stroke:#59663d}
+#battle-view .center-seal circle:first-child{fill:#120b07;stroke:#9a6838;stroke-width:1.4}.center-seal path{fill:#2c1a0f;stroke:#c0803e;stroke-width:1}.center-seal circle:last-child{fill:#e58a36;filter:drop-shadow(0 0 5px #e77828)}
+#battle-view .lane-names,#battle-view .lanes{position:relative;z-index:3;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#battle-view .lane-names{height:16px}.lane-names span{font-size:6px;color:#b79a6f8c;letter-spacing:.22em;text-shadow:0 2px 3px #000}
+#battle-view .lane{height:100%;padding:0;border:0;background:none;box-shadow:none;display:grid;grid-template-rows:minmax(0,1fr) 20px minmax(0,1fr)}
+#battle-view .lane.ready{border:0;background:linear-gradient(90deg,transparent,#39c9bd09,transparent);box-shadow:none}
+#battle-view .lane.ready .slot.ally:after{content:"";position:absolute;z-index:0;left:8%;right:8%;bottom:4%;height:18%;border-radius:50%;background:radial-gradient(ellipse,#6effef4d,transparent 70%);filter:blur(3px);animation:socketReady 1.25s ease-in-out infinite alternate}
+@keyframes socketReady{from{opacity:.35;transform:scale(.86)}to{opacity:1;transform:scale(1.08)}}
+#battle-view .slot{position:relative;z-index:2;height:100%;min-height:0;overflow:visible;border:0;border-radius:0;background:none;box-shadow:none}
+#battle-view .slot:before{content:"";position:absolute;z-index:-1;left:10%;right:10%;bottom:3%;height:14%;border-radius:50%;background:radial-gradient(ellipse,#000d 0 35%,transparent 72%);filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s}
+#battle-view .slot:has(.unit):before{opacity:1}
+#battle-view .lane-mark{position:relative;z-index:5;color:#c6833d99;font:900 8px Georgia,serif;text-shadow:0 0 6px #dd792c,0 2px #000}
+
+/* Board cards inherit the socket's light and physically sit on its plinth. */
+#battle-view .slot .unit{inset:3% 8% 4%;overflow:visible;filter:none;perspective:650px;transform-style:preserve-3d}
+#battle-view .slot .unit:before{content:"";position:absolute;z-index:-1;left:7%;right:7%;bottom:-3px;height:16px;border-radius:50%;background:#000c;filter:blur(4px);transform:rotateX(64deg)}
+#battle-view .slot .unit .standard-card{filter:drop-shadow(0 8px 6px #000c) saturate(.88);transform-origin:50% 100%;transition:transform .22s ease,filter .22s ease}
+#battle-view .slot.ally .unit .standard-card{transform:perspective(620px) rotateX(2.5deg);box-shadow:inset 0 0 18px #e8862714,0 0 0 1px #b47c3f33}
+#battle-view .slot.foe .unit .standard-card{transform:perspective(620px) rotateX(-2.5deg);box-shadow:inset 0 0 18px #7f9a4b18,0 0 0 1px #778d493d}
+
+/* Foreground command deck overlaps the stage and closes the visual composition. */
+#battle-view .hand-dock{position:absolute;z-index:45;left:0;right:0;bottom:0;height:calc(var(--dock-h) + var(--safe-b));display:grid;grid-template-columns:25px 32px minmax(0,1fr) 25px 60px;gap:3px;padding:24px 4px calc(6px + var(--safe-b));overflow:hidden;border:0;background:radial-gradient(ellipse at 50% -18%,#71401955,transparent 47%),linear-gradient(180deg,#1b120c 0,#0a0705 27%,#050403 100%);box-shadow:0 -2px #b07b3e4d,0 -16px 35px #000c}
+#battle-view .hand-dock:before{content:"";position:absolute;z-index:-1;left:-8%;right:-8%;top:-23px;height:48px;border:2px solid #83603b;border-bottom:0;border-radius:50% 50% 0 0;background:linear-gradient(180deg,#3b2819,#120c08 68%);box-shadow:inset 0 2px #c3955859,0 -10px 24px #000c}
+#battle-view .hand-dock:after{content:"";position:absolute;left:50%;top:-12px;width:64px;height:22px;transform:translateX(-50%);clip-path:polygon(18% 0,82% 0,100% 50%,82% 100%,18% 100%,0 50%);background:linear-gradient(180deg,#9b6d3c,#2a1b10);box-shadow:inset 0 0 0 2px #d2a76538;pointer-events:none}
+#battle-view .hand{align-items:center;padding:5px 3px 3px}
+#battle-view .hand-card.selected{transform:translateY(-8px) scale(1.04)}
+#battle-view .energy{position:relative;box-shadow:0 0 0 2px #0b2625,0 0 0 3px #9a7546,0 0 18px #38c7bc45,0 5px 9px #000}
+#battle-view .lock-btn{height:60px;background:linear-gradient(180deg,#267d76,#0d3937 62%,#071d1c);box-shadow:inset 0 1px #91fff46e,0 6px 12px #000c;filter:drop-shadow(0 0 8px #38c7bc24)}
+#battle-view .toast{bottom:calc(var(--dock-h) + var(--safe-b) + 7px)}
+
+@media(max-height:720px){
+  #battle-view.active{--dock-h:146px}
+  #battle-view .battlebar{height:42px}
+  #battle-view .opponent{top:calc(var(--safe-t) + 43px);height:51px}
+  #battle-view .battlefield{top:calc(var(--safe-t) + 93px);bottom:53px}
+  #battle-view .player{height:50px;bottom:3px}
+  #battle-view .hand-dock{padding-top:19px}
+}
+@media(min-width:700px){#battle-view.active{width:430px;margin:0 auto}}
