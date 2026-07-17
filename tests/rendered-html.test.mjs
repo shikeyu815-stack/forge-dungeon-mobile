@@ -57,6 +57,7 @@ test("serves the complete mobile game at the site root", async () => {
 test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   const gameJs = await readFile(new URL("../dist/client/complete.js", import.meta.url), "utf8");
   const polishCss = await readFile(new URL("../dist/client/polish.css", import.meta.url), "utf8");
+  const commercialCss = await readFile(new URL("../dist/client/commercial.css", import.meta.url), "utf8");
   assert.match(gameJs, /const HERO_SPELLS=/);
   assert.match(gameJs, /function showStartingDeck/);
   assert.match(gameJs, /localStorage/);
@@ -73,18 +74,23 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   assert.match(gameJs, /\$\('#lock-btn'\)\.disabled=battle\.resolving/);
   assert.match(gameJs, /el\.style\.outline=battle\.target===i/);
   assert.match(polishCss, /width:min\(100cqw,calc\(100cqh \* \.7142857\)\)/);
+  assert.match(commercialCss, /battle-arena-bg-v2\.webp/);
+  assert.match(commercialCss, /#battle-view \.hand/);
 
   for (const path of [
     "dist/.openai/hosting.json",
     "dist/client/complete.css",
     "dist/client/polish.css",
     "dist/client/flow.css",
+    "dist/client/commercial.css",
     "dist/client/og.png",
     "dist/client/assets/card-art-atlas-v1.png",
     "dist/client/assets/card-art-player-v2.png",
     "dist/client/assets/card-art-neutral-enemy-v2.png",
     "dist/client/assets/card-art-boss-v2.png",
     "dist/client/assets/battle-arena-bg-v1.png",
+    "dist/client/assets/battle-arena-bg-v2.webp",
+    "dist/client/assets/title-forge-bg-v1.webp",
     "dist/client/assets/dungeon-map-bg-v1.png",
   ]) {
     await access(new URL(path, root));

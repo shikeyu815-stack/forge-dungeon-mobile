@@ -16,11 +16,13 @@
   <link rel="preload" as="image" href="assets/card-art-player-v2.png" />
   <link rel="preload" as="image" href="assets/card-art-neutral-enemy-v2.png" />
   <link rel="preload" as="image" href="assets/card-art-boss-v2.png" />
-  <link rel="preload" as="image" href="assets/battle-arena-bg-v1.png" />
+  <link rel="preload" as="image" href="assets/battle-arena-bg-v2.webp" type="image/webp" />
+  <link rel="preload" as="image" href="assets/title-forge-bg-v1.webp" type="image/webp" />
   <link rel="preload" as="image" href="assets/dungeon-map-bg-v1.png" />
-  <link rel="stylesheet" href="complete.css?v=20260717a" />
-  <link rel="stylesheet" href="polish.css?v=20260717a" />
-  <link rel="stylesheet" href="flow.css?v=20260717a" />
+  <link rel="stylesheet" href="complete.css?v=20260717e" />
+  <link rel="stylesheet" href="polish.css?v=20260717e" />
+  <link rel="stylesheet" href="flow.css?v=20260717e" />
+  <link rel="stylesheet" href="commercial.css?v=20260717e" />
 </head>
 <body>
   <main id="game">
@@ -30,15 +32,14 @@
         <div class="wallet"><span>晶尘</span><b id="home-dust">0</b></div>
       </div>
       <div class="home-hero">
-        <p class="kicker">CARD DUNGEON</p>
-        <h1>下潜三层<br><em>活着回来。</em></h1>
-        <p>选英雄，走路线，杀首领。</p>
+        <span class="home-sigil" aria-hidden="true">◆</span>
+        <p class="kicker">炉火已醒</p>
+        <h1>炉痕<br><em>地牢</em></h1>
       </div>
-      <div class="home-loop" aria-label="远征流程"><span><b>1</b>选择英雄</span><i>›</i><span><b>2</b>预览牌组</span><i>›</i><span><b>3</b>开始出征</span></div>
       <div class="home-actions">
-        <button class="btn primary" id="new-run-btn">开始游戏 · 选择英雄 <span>→</span></button>
-        <button class="btn secondary" id="continue-btn" hidden>继续上次远征</button>
-        <button class="btn ghost compendium-entry" id="open-library-btn"><span>▦</span> 卡牌图鉴</button>
+        <button class="btn primary" id="new-run-btn"><b>开始远征</b><span>›</span></button>
+        <button class="btn secondary" id="continue-btn" hidden>继续远征</button>
+        <button class="btn ghost compendium-entry" id="open-library-btn"><span>▦</span><b>卡牌图鉴</b></button>
       </div>
       <div class="record"><span>通关 <b id="clear-count">0</b></span><i></i><span>最佳深度 <b id="best-depth">0</b>/15</span></div>
     </section>
@@ -48,11 +49,6 @@
       <div class="hero-select-scroll">
         <div class="hero-select-copy"><p class="kicker">CHOOSE YOUR PATH</p><h2>选择英雄</h2></div>
         <div class="hero-picker" id="hero-picker" role="listbox" aria-label="英雄列表"></div>
-        <section class="expedition-rules">
-          <div><b>三层</b><span>每层五个房间</span></div>
-          <div><b>分岔</b><span>每一步选择路线</span></div>
-          <div><b>击杀</b><span>怪物归零才算胜利</span></div>
-        </section>
       </div>
       <footer class="hero-select-footer">
         <div id="selected-hero-brief"><small>当前选择</small><b>铸炉者 · 8张初始牌</b></div>
@@ -166,6 +162,6 @@
     </div>
   </div>
   <div class="sheet" id="sheet"><div class="sheet-card"><button class="sheet-close">×</button><div id="sheet-content"></div></div></div>
-  <script src="complete.js?v=20260717a"></script>
+  <script src="complete.js?v=20260717e"></script>
 </body>
 </html>

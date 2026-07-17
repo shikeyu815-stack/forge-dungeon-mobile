@@ -1,0 +1,95 @@
+/* Commercial vertical slice: the environment is the interface. */
+#home-view.active{
+  height:100dvh;
+  min-height:0;
+  display:grid;
+  grid-template-rows:calc(54px + var(--safe-t)) minmax(0,1fr) auto auto;
+  overflow:hidden;
+  isolation:isolate;
+  background:
+    linear-gradient(180deg,#0707074d 0%,#09080718 38%,#090807e8 77%,#090807 100%),
+    url("assets/title-forge-bg-v1.webp") center/cover no-repeat;
+}
+#home-view:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 50% 34%,#d980292d,transparent 31%),linear-gradient(90deg,#0008,transparent 25% 75%,#0008);pointer-events:none}
+#home-view .home-top{height:calc(54px + var(--safe-t));padding-inline:18px;border:0;background:linear-gradient(#080706cc,transparent);box-shadow:none;backdrop-filter:none}
+#home-view .brand-mini{font-size:12px;letter-spacing:.14em;text-shadow:0 2px 10px #000}
+#home-view .wallet{padding:6px 9px;background:#08070675;border-color:#b9905940;backdrop-filter:blur(8px)}
+#home-view .home-hero{align-self:center;padding:0 24px 8vh;text-align:center}
+#home-view .home-hero:after{display:none}
+.home-sigil{width:56px;height:56px;margin:0 auto 13px;display:grid;place-items:center;transform:rotate(45deg);border:1px solid #b9874e;background:radial-gradient(circle,#d8923b55,#100c09 72%);color:#f0bd70;font-size:20px;box-shadow:0 0 0 5px #100c0980,0 0 42px #d9822955}
+#home-view .home-hero .kicker{margin:0 0 8px;color:#c89b62!important;font-size:9px!important;letter-spacing:.42em;text-indent:.42em}
+#home-view .home-hero h1{margin:0;font:900 clamp(56px,17vw,78px)/.82 Georgia,"STKaiti",serif;letter-spacing:.06em;text-shadow:0 6px 22px #000,0 1px #d4ae73}
+#home-view .home-hero h1 em{display:inline-block;margin-top:13px;color:#e9b264}
+#home-view .home-actions{padding:0 20px 8px;gap:8px}
+#home-view .home-actions .btn{min-height:54px;border-radius:5px;clip-path:polygon(3% 0,97% 0,100% 50%,97% 100%,3% 100%,0 50%);letter-spacing:.12em}
+#home-view .home-actions .btn.primary{background:linear-gradient(180deg,#f0bd6d,#b96e2f);box-shadow:0 14px 34px #000b,0 0 24px #df9b432c}
+#home-view .home-actions .btn.primary b{font-size:15px}
+#home-view .home-actions .btn.primary span{font-size:22px;line-height:14px}
+#home-view .home-actions .btn.ghost{min-height:42px;grid-template-columns:25px 1fr 25px;border:0;background:#0a090880;clip-path:none;color:#ad9d87}
+#home-view .home-actions .compendium-entry>span{grid-row:auto;font-size:15px}
+#home-view .record{padding:8px 17px calc(13px + var(--safe-b));font-size:8px;color:#756957;background:#090807c7}
+
+/* Cards: illustration first, rules readable, compact corner resources. */
+.standard-card{grid-template-rows:50% auto minmax(0,1fr);border-width:1px;border-color:#745737;border-radius:7px;background:#100d0a}
+.standard-card:after{inset:2px;border-color:#d3a8652b}
+.standard-title{min-height:clamp(17px,12cqw,25px);margin:0 4px;padding:0 4px;border-width:1px;font-size:clamp(9px,7.2cqw,14px)}
+.standard-rule{gap:2px;padding:clamp(4px,3.5cqw,7px) clamp(5px,4.5cqw,9px) clamp(16px,13cqw,22px)}
+.standard-effect-copy{gap:2px}
+.standard-effect-tag{font-size:clamp(6px,4.6cqw,9px)}
+.standard-effect-text,.reward-face .standard-effect-text,.collection-face .standard-effect-text,.inspected-card .standard-effect-text,.forge-face .standard-effect-text{font-size:clamp(7.5px,5.5cqw,11px);line-height:1.22;-webkit-line-clamp:3}
+.standard-flavor{font-size:clamp(7px,4.2cqw,9px);padding-top:3px}
+.standard-cost{left:3px;top:3px;width:clamp(23px,20cqw,36px);height:clamp(23px,20cqw,36px)}
+.standard-cost:before,.standard-stat:before{inset:2px}
+.standard-cost b{font-size:clamp(14px,12cqw,21px)}
+.standard-stats{left:2px;right:2px;bottom:2px}
+.standard-stat{width:clamp(22px,20cqw,36px);height:clamp(22px,20cqw,36px)}
+.standard-stat i{font-size:clamp(15px,15cqw,27px);opacity:.42}
+.standard-stat b{font-size:clamp(13px,12cqw,22px)}
+.standard-hp i{font-size:clamp(16px,16cqw,28px)}
+.hand-face .standard-flavor,.board-face .standard-flavor{display:none}
+.hand-face .standard-rule,.board-face .standard-rule{padding-bottom:clamp(13px,12cqw,19px)}
+.hand-face .standard-effect-text,.board-face .standard-effect-text{-webkit-line-clamp:3}
+.hand-face{grid-template-rows:43% auto minmax(0,1fr)}
+.hand-face .standard-rule{justify-content:flex-start;padding:3px 5px 24px}
+.hand-face .standard-effect-tag{display:none}
+.hand-face .standard-effect-copy{justify-content:flex-start}
+.hand-face .standard-effect-text{font-size:7.5px;line-height:1.16;-webkit-line-clamp:2;text-align:center}
+
+/* Battle: cards live on the arena instead of inside nested boxes. */
+#battle-view.active{
+  background:
+    linear-gradient(180deg,#05050591 0%,transparent 22%,transparent 68%,#070605d9 84%,#070605 100%),
+    url("assets/battle-arena-bg-v2.webp") center/cover no-repeat;
+  grid-template-rows:calc(46px + var(--safe-t)) 54px minmax(250px,1fr) 54px calc(170px + var(--safe-b));
+}
+#battle-view .battlebar,#battle-view .hero-row{border:0;background:linear-gradient(90deg,#080706d9,#17100ab8 50%,#080706d9);box-shadow:0 7px 20px #0006;backdrop-filter:blur(5px)}
+#battle-view .battlefield{padding:2px 4px 5px;border:0;background:linear-gradient(180deg,#0004,transparent 18% 82%,#0004);box-shadow:none;backdrop-filter:none}
+#battle-view .lane-names{height:14px}
+#battle-view .lane-names span{color:#bda37a8c;text-shadow:0 2px 3px #000;font-size:6px;letter-spacing:.15em}
+#battle-view .lanes{gap:4px}
+#battle-view .lane{padding:2px;border:0;border-radius:0;background:transparent;box-shadow:none}
+#battle-view .lane.ready{border:0;box-shadow:inset 0 -3px #38c7bc99,0 10px 22px #38c7bc18}
+#battle-view .slot{border:0;border-radius:5px;background:transparent;overflow:visible}
+#battle-view .lane-mark{color:#c5995945;text-shadow:0 1px #000;font-size:9px}
+#battle-view .unit{inset:2px;filter:drop-shadow(0 7px 7px #000b)}
+
+/* The hand is a horizontal, scrollable card rail. Every card stays selectable. */
+#battle-view .hand-dock{grid-template-columns:25px 32px minmax(0,1fr) 25px 60px;gap:3px;padding:8px 3px calc(6px + var(--safe-b));border-top:1px solid #b087554d;background:linear-gradient(180deg,#1a120ceb,#080605 32%);box-shadow:0 -12px 30px #0009;overflow:hidden}
+#battle-view .hand{justify-content:flex-start;align-items:center;gap:5px;overflow-x:auto;overflow-y:hidden;padding:18px 3px 4px;scroll-snap-type:x mandatory;scroll-padding-inline:3px}
+#battle-view .hand-card,#battle-view .hand-card:first-child{flex:0 0 84px;height:118px;margin-left:0;transform:none;transform-origin:center;scroll-snap-align:center}
+#battle-view .hand-card .standard-card{height:118px}
+#battle-view .hand-card.selected{transform:translateY(-10px) scale(1.04);z-index:30}
+#battle-view .draw-pile,#battle-view .discard-pile{padding:5px 0;border:0;border-radius:3px;background:#0a0806cc;box-shadow:inset 0 0 0 1px #6e5c4945}
+#battle-view .energy{width:32px;height:40px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,#5edbd2,#176b68 58%,#0a2e2c);box-shadow:0 0 0 2px #0b2625,0 0 0 3px #8b754f,0 3px 10px #000}
+#battle-view .energy b{font-size:9px}#battle-view .energy span{font-size:17px;color:#edfffd}#battle-view .energy small{display:none}
+#battle-view .lock-btn{width:60px;height:62px;border-radius:5px;clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)}
+#battle-view .lock-btn small{display:none}
+#battle-view .toast{bottom:calc(174px + var(--safe-b))}
+
+@media(max-height:720px){
+  #battle-view.active{grid-template-rows:calc(44px + var(--safe-t)) 50px minmax(226px,1fr) 50px calc(146px + var(--safe-b))}
+  #battle-view .hand{padding-top:13px}
+  #battle-view .hand-card,#battle-view .hand-card:first-child{flex-basis:71px;height:100px}
+  #battle-view .hand-card .standard-card{height:100px}
+  #battle-view .toast{bottom:calc(150px + var(--safe-b))}
+}

@@ -13,6 +13,7 @@ const runtimeFiles = [
   "complete.css",
   "polish.css",
   "flow.css",
+  "commercial.css",
 ];
 
 const workerSource = `const worker = {
