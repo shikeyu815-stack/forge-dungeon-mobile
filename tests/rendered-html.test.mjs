@@ -59,6 +59,7 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   const polishCss = await readFile(new URL("../dist/client/polish.css", import.meta.url), "utf8");
   const commercialCss = await readFile(new URL("../dist/client/commercial.css", import.meta.url), "utf8");
   const battleStageCss = await readFile(new URL("../dist/client/battle-stage.css", import.meta.url), "utf8");
+  const laneBoardCss = await readFile(new URL("../dist/client/lane-board.css", import.meta.url), "utf8");
   assert.match(gameJs, /const HERO_SPELLS=/);
   assert.match(gameJs, /function showStartingDeck/);
   assert.match(gameJs, /localStorage/);
@@ -73,12 +74,15 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
   assert.match(gameJs, /function startBattle[\s\S]*?\$\('#lock-btn'\)\.disabled=false/);
   assert.match(gameJs, /function startBattle[\s\S]*?\$\('#phase'\)\.textContent='规划行动'/);
   assert.match(gameJs, /\$\('#lock-btn'\)\.disabled=battle\.resolving/);
-  assert.match(gameJs, /el\.style\.outline=battle\.target===i/);
+  assert.match(gameJs, /classList\.toggle\('targeted',battle\.target===i\)/);
   assert.match(polishCss, /width:min\(100cqw,calc\(100cqh \* \.7142857\)\)/);
   assert.match(commercialCss, /battle-arena-bg-v2\.webp/);
   assert.match(commercialCss, /#battle-view \.hand/);
   assert.match(battleStageCss, /\.arena-geometry/);
   assert.match(battleStageCss, /\.battle-stage/);
+  assert.match(laneBoardCss, /battle-lanes-v1\.webp/);
+  assert.match(gameJs, /function bindCardDrag/);
+  assert.match(gameJs, /preview-unit/);
 
   for (const path of [
     "dist/.openai/hosting.json",
@@ -87,6 +91,7 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
     "dist/client/flow.css",
     "dist/client/commercial.css",
     "dist/client/battle-stage.css",
+    "dist/client/lane-board.css",
     "dist/client/og.png",
     "dist/client/assets/card-art-atlas-v1.png",
     "dist/client/assets/card-art-player-v2.png",
@@ -95,6 +100,8 @@ test("ships the PVE loop, branching dungeon, relics and all art", async () => {
     "dist/client/assets/battle-arena-bg-v1.png",
     "dist/client/assets/battle-arena-bg-v2.webp",
     "dist/client/assets/title-forge-bg-v1.webp",
+    "dist/client/assets/battle-lanes-v1.webp",
+    "dist/client/assets/ui-black-iron-v1.webp",
     "dist/client/assets/dungeon-map-bg-v1.png",
   ]) {
     await access(new URL(path, root));

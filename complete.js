@@ -215,10 +215,37 @@ function closeCardInspector(){$('#card-inspector').classList.remove('open');$('#
 function bindCardHold(el,c){
  let timer=null,sx=0,sy=0;
  const cancel=()=>{if(timer){clearTimeout(timer);timer=null}};
- el.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;sx=e.clientX;sy=e.clientY;cancel();timer=setTimeout(()=>{el._suppressCardClick=true;showCardInspector(c);navigator.vibrate?.(18);timer=null},380)});
+ el.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;sx=e.clientX;sy=e.clientY;cancel();timer=setTimeout(()=>{el._suppressCardClick=true;showCardInspector(c);navigator.vibrate?.(18);timer=null},650)});
  el.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)cancel()});
  el.addEventListener('pointerup',cancel);el.addEventListener('pointercancel',cancel);
  el.addEventListener('contextmenu',e=>{e.preventDefault();el._suppressCardClick=true;showCardInspector(c)});
+}
+
+function bindCardDrag(el,index,c){
+ let pointer=null,sx=0,sy=0,ghost=null,dragging=false,hover=null;
+ const lanes=()=>$$('.lane');
+ const clearHover=()=>lanes().forEach(x=>x.classList.remove('drag-hover'));
+ const setHover=i=>{hover=i;clearHover();if(i!==null)lanes()[i]?.classList.add('drag-hover')};
+ const moveGhost=e=>{if(!ghost)return;ghost.style.left=`${e.clientX}px`;ghost.style.top=`${e.clientY}px`};
+ const relayMove=e=>{if(pointer!==null&&!el.contains(e.target))el.dispatchEvent(new PointerEvent('pointermove',{pointerId:e.pointerId,clientX:e.clientX,clientY:e.clientY,button:e.button,bubbles:false,cancelable:true}))};
+ const relayUp=e=>{if(pointer!==null&&!el.contains(e.target))stop(e,false)};
+ const relayCancel=e=>{if(pointer!==null)stop(e,true)};
+ const stop=(e,cancelled=false)=>{
+  if(pointer===null||e.pointerId!==pointer)return;
+  const lane=hover;window.removeEventListener('pointermove',relayMove);window.removeEventListener('pointerup',relayUp);window.removeEventListener('pointercancel',relayCancel);pointer=null;clearHover();$('#battle-view .battlefield')?.classList.remove('dragging-card');document.body.classList.remove('card-dragging');ghost?.remove();ghost=null;
+  if(!dragging)return;
+  el._suppressCardClick=true;dragging=false;
+  if(!cancelled&&lane!==null&&!battle.lanes[lane]){battle.selected=index;battle.target=lane;renderHand();renderBoard();toast(`${c.name} → ${['左翼','中央','右翼'][lane]}`)}
+  else{battle.selected=null;battle.target=null;renderHand();renderBoard();if(!cancelled)toast('没有放入战线')}
+ };
+ el.addEventListener('pointerdown',e=>{if((e.button!==undefined&&e.button!==0)||battle.resolving||c.cost>battle.energy||cardType(c)!=='unit')return;pointer=e.pointerId;sx=e.clientX;sy=e.clientY;window.addEventListener('pointermove',relayMove,{passive:false});window.addEventListener('pointerup',relayUp);window.addEventListener('pointercancel',relayCancel)});
+ el.addEventListener('pointermove',e=>{
+  if(pointer===null||e.pointerId!==pointer)return;
+  const dx=e.clientX-sx,dy=e.clientY-sy;if(!dragging&&Math.hypot(dx,dy)<12)return;
+  if(!dragging){dragging=true;el._suppressCardClick=true;closeCardInspector();el.setPointerCapture?.(pointer);battle.selected=index;battle.target=null;renderBoard();$('#battle-view .battlefield')?.classList.add('dragging-card');document.body.classList.add('card-dragging');ghost=el.cloneNode(true);ghost.className='card-drag-ghost';document.body.appendChild(ghost)}
+  e.preventDefault();moveGhost(e);const laneEl=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('.lane');const i=laneEl?Number(laneEl.dataset.lane):null;setHover(Number.isInteger(i)&&!battle.lanes[i]?i:null)
+ },{passive:false});
+ el.addEventListener('pointerup',e=>stop(e,false));el.addEventListener('pointercancel',e=>stop(e,true));
 }
 
 function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));scrollTo(0,0)}
@@ -275,10 +302,10 @@ function drawCards(n=1){let drawn=0;while(n--&&battle.hand.length<8){if(!battle.
 function startBattle(room){const foe=scaledFoe(room),deck=shuffle(run.deck.map(clone)),opening=run.relics.includes('回响齿轮')?5:4;battle={room,foe,round:1,playerHp:run.hp,enemyHp:foe.hp,energy:run.relics.includes('火种核心')?2:1,energyMax:run.relics.includes('火种核心')?2:1,deck,hand:[],discard:[],lanes:[null,null,null],enemyLanes:[null,null,null],selected:null,target:null,reserveShield:0,skillUsed:false,resolving:false,forgePassive:false,relicTriggered:false,sporeDeaths:0};drawCards(opening);if(!battle.hand.some(c=>c.cost===1&&cardType(c)==='unit')){const i=battle.deck.findIndex(c=>c.cost===1&&cardType(c)==='unit');if(i>=0){const old=battle.hand.pop();if(old)battle.deck.push(old);battle.hand.push(battle.deck.splice(i,1)[0])}}$('#lock-btn').disabled=false;$('#phase').textContent='规划行动';$$('.lane').forEach(x=>x.style.outline='');planEnemy();renderBattle();show('battle-view')}
 function planEnemy(){const affordable=battle.foe.cards.filter(c=>c.cost<=Math.min(10,battle.round));const open=battle.enemyLanes.map((u,i)=>u?null:i).filter(i=>i!==null);battle.enemyPlan={lane:(open.length?open[Math.floor(Math.random()*open.length)]:Math.floor(Math.random()*3)),card:clone(affordable[Math.floor(Math.random()*affordable.length)])}}
 function renderBattle(){const h=hero(),f=battle.foe;$('#round').textContent=battle.round;$('#player-name').textContent=h.name;$('#player-portrait').textContent='';$('#player-portrait').style.cssText=`border-color:${h.color};${artStyle(h)}`;$('#player-hp').textContent=Math.max(0,battle.playerHp);$('#player-max-hp').textContent=run.maxHp;$('#player-hp-bar').style.width=`${Math.max(0,battle.playerHp)/run.maxHp*100}%`;$('#enemy-name').textContent=f.name;$('#enemy-portrait').textContent='';$('#enemy-portrait').style.cssText=`border-color:${f.color};${artStyle(f)}`;$('#enemy-hp').textContent=Math.max(0,battle.enemyHp);$('#enemy-max-hp').textContent=f.hp;$('#enemy-hp-bar').style.width=`${Math.max(0,battle.enemyHp)/f.hp*100}%`;$('#intent-text').textContent=`${['左翼','中央','右翼'][battle.enemyPlan.lane]} · ${battle.enemyPlan.card.name}`;$('#energy').textContent=battle.energy;$('#energy-max').textContent=battle.energyMax;$('#draw-count').textContent=battle.deck.length;$('#discard-count').textContent=battle.discard.length;$('#skill-icon').textContent=h.skillIcon;$('#skill-name').textContent=h.skill;$('#skill-desc').textContent=h.skillDesc;$('#skill-btn').classList.toggle('used',battle.skillUsed);$('#lock-btn').disabled=battle.resolving;renderHand();renderBoard()}
-function renderHand(){const root=$('#hand');root.innerHTML='';const mid=(battle.hand.length-1)/2;battle.hand.forEach((c,i)=>{const b=document.createElement('button'),offset=i-mid;b.className=`hand-card ${battle.selected===i?'selected':''} ${c.cost>battle.energy?'disabled':''}`;b.style.setProperty('--fan-angle',`${offset*5.5}deg`);b.style.setProperty('--fan-y',`${Math.abs(offset)*4}px`);b.style.setProperty('--fan-z',i+1);b.innerHTML=cardFace(c,'hand-face');bindCardHold(b,c);b.onclick=()=>{if(b._suppressCardClick){b._suppressCardClick=false;return}selectCard(i)};root.appendChild(b)})}
+function renderHand(){const root=$('#hand');root.innerHTML='';const mid=(battle.hand.length-1)/2;battle.hand.forEach((c,i)=>{const b=document.createElement('button'),offset=i-mid;b.className=`hand-card ${battle.selected===i?'selected':''} ${c.cost>battle.energy?'disabled':''}`;b.style.setProperty('--fan-angle',`${offset*5.5}deg`);b.style.setProperty('--fan-y',`${Math.abs(offset)*4}px`);b.style.setProperty('--fan-z',i+1);b.innerHTML=cardFace(c,'hand-face');bindCardHold(b,c);bindCardDrag(b,i,c);b.onclick=()=>{if(b._suppressCardClick){b._suppressCardClick=false;return}selectCard(i)};root.appendChild(b)})}
 function selectCard(i){if(battle.resolving)return;const c=battle.hand[i];if(c.cost>battle.energy)return toast('当前能量不足');battle.selected=battle.selected===i?null:i;battle.target=null;renderHand();renderBoard();toast(battle.selected===null?'已取消选择':cardType(c)==='spell'?'法术已准备，直接锁定即可施放':'再点击一条战线')}
 function unitHtml(u){return u?`<div class="unit ${u.enemy?'foe-unit':''}">${cardFace(u,'board-face')}</div>`:''}
-function renderBoard(){const unitSelected=battle.selected!==null&&cardType(battle.hand[battle.selected])==='unit';$$('.lane').forEach((el,i)=>{el.classList.toggle('ready',unitSelected);el.style.outline=battle.target===i?'2px solid #ffe28a':'';$('.foe',el).innerHTML=unitHtml(battle.enemyLanes[i]);$('.ally',el).innerHTML=unitHtml(battle.lanes[i]);const foeUnit=$('.foe .unit',el),allyUnit=$('.ally .unit',el);if(foeUnit)bindCardHold(foeUnit,battle.enemyLanes[i]);if(allyUnit)bindCardHold(allyUnit,battle.lanes[i]);$('.ally',el).onclick=e=>{if(allyUnit?._suppressCardClick){allyUnit._suppressCardClick=false;return}chooseLane(i)}})}
+function renderBoard(){const chosen=battle.selected!==null?battle.hand[battle.selected]:null,unitSelected=chosen&&cardType(chosen)==='unit';$$('.lane').forEach((el,i)=>{el.classList.toggle('ready',!!unitSelected&&!battle.lanes[i]);el.classList.toggle('targeted',battle.target===i);el.style.outline='';$('.foe',el).innerHTML=unitHtml(battle.enemyLanes[i]);const preview=battle.target===i&&unitSelected&&!battle.lanes[i]?`<div class="unit preview-unit">${cardFace(chosen,'board-face')}</div>`:'';$('.ally',el).innerHTML=unitHtml(battle.lanes[i])||preview;const foeUnit=$('.foe .unit',el),allyUnit=$('.ally .unit',el);if(foeUnit)bindCardHold(foeUnit,battle.enemyLanes[i]);if(allyUnit)bindCardHold(allyUnit,battle.lanes[i]||chosen);$('.ally',el).onclick=e=>{if(allyUnit?._suppressCardClick){allyUnit._suppressCardClick=false;return}chooseLane(i)}})}
 function chooseLane(i){if(battle.resolving)return;if(battle.selected===null)return toast('先选择一张手牌');if(cardType(battle.hand[battle.selected])==='spell')return toast('法术不需要选线');if(battle.lanes[i])return toast('这条战线已有单位');battle.target=i;renderBoard();toast(`${battle.hand[battle.selected].name} → ${['左翼','中央','右翼'][i]}`)}
 function hurt(u,n){const block=Math.min(u.shield||0,n);u.shield-=block;u.hp-=n-block}
 function deployEffect(u,other,side){if(u.effect==='strike'&&other)hurt(other,effectAmount(u,1));if(u.effect==='strike2'&&other)hurt(other,2);if(u.effect==='heal')battle[side==='player'?'playerHp':'enemyHp']=Math.min(side==='player'?run.maxHp:battle.foe.hp,battle[side==='player'?'playerHp':'enemyHp']+2)}

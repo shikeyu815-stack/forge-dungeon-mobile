@@ -1,0 +1,46 @@
+/* Texture-authored three-lane board. No persistent placement boxes. */
+#battle-view.active{--board-card-w:min(108px,calc((100vw - 34px)/3))}
+#battle-view .arena-geometry{display:none!important}
+#battle-view .battle-stage{background:linear-gradient(180deg,#020202b8 0%,#0a0805a8 17%,#0d090661 54%,#050403f0 100%),url("assets/battle-arena-bg-v2.webp") center 16%/cover no-repeat}
+#battle-view .battlefield{padding:0 7px 4px;isolation:isolate}
+#battle-view .battlefield:before{content:"";position:absolute;z-index:0;inset:10px 0 0;background:linear-gradient(180deg,#0005,transparent 12% 83%,#0008),url("assets/battle-lanes-v1.webp") center/100% 100% no-repeat;opacity:.82;filter:saturate(.8) contrast(1.04);pointer-events:none}
+#battle-view .battlefield:after{content:"";position:absolute;z-index:1;inset:8px 0 0;background:radial-gradient(ellipse at 50% 51%,#d67a2717,transparent 42%),linear-gradient(90deg,#0008,transparent 9% 91%,#0008);pointer-events:none}
+#battle-view .lane-names,#battle-view .lanes{z-index:3;gap:0}
+#battle-view .lane-names span{color:#b99a6b78;font-size:6px;letter-spacing:.25em}
+#battle-view .lane{position:relative;background:none!important;border:0!important;box-shadow:none!important}
+#battle-view .lane:before{content:"";position:absolute;z-index:-1;inset:0 5px;background:linear-gradient(90deg,transparent,#00000012 48% 52%,transparent);pointer-events:none}
+#battle-view .lane-mark{display:none}
+#battle-view .slot,#battle-view .slot:before{background:none!important;border:0!important;box-shadow:none!important}
+#battle-view .slot:before{display:none}
+#battle-view .lane.ready .slot.ally:after,#battle-view .lane.drag-hover .slot.ally:after,#battle-view .lane.targeted .slot.ally:after{content:"";position:absolute;z-index:0;left:13%;right:13%;bottom:2px;height:27px;border-radius:50%;background:radial-gradient(ellipse,#7ffff06e 0 17%,#31c9bc30 42%,transparent 72%);filter:blur(1px);opacity:.45;animation:laneDropPulse 1s ease-in-out infinite alternate}
+#battle-view .lane.drag-hover .slot.ally:after{opacity:1;filter:drop-shadow(0 0 9px #42e0d1) blur(.4px);transform:scale(1.08)}
+#battle-view .lane.targeted .slot.ally:after{opacity:.82;background:radial-gradient(ellipse,#ffc86c80 0 16%,#d7803038 42%,transparent 72%)}
+@keyframes laneDropPulse{from{transform:scale(.88);opacity:.35}to{transform:scale(1.05);opacity:.8}}
+
+/* Enemy and player cards use the exact same physical footprint. */
+#battle-view .slot .unit{inset:auto;left:50%;right:auto;top:auto;bottom:7px;width:var(--board-card-w);height:auto;aspect-ratio:5/7;transform:translateX(-50%);perspective:650px}
+#battle-view .slot .unit .standard-card{width:100%;height:100%;max-width:none;max-height:none}
+#battle-view .slot.foe .unit .standard-card,#battle-view .slot.ally .unit .standard-card{transform:perspective(620px) rotateX(1.5deg);filter:drop-shadow(0 9px 7px #000d) saturate(.88)}
+#battle-view .slot .unit:before{left:5%;right:5%;bottom:-7px;height:13px}
+#battle-view .preview-unit{opacity:.78;filter:drop-shadow(0 0 10px #44d8ca80)}
+#battle-view .preview-unit .standard-card{box-shadow:0 0 0 1px #6fe8dd,0 0 20px #38c7bc45!important}
+
+/* UI plates use sampled raster material from the same environment art. */
+#battle-view .hero-row{background:linear-gradient(90deg,#070504d4,#1a1009a8 50%,#060403df),url("assets/ui-black-iron-v1.webp") center 58%/cover no-repeat;box-shadow:inset 0 1px #9c784844,inset 0 -1px #000,0 8px 16px #000a}
+#battle-view .round,#battle-view .battlebar .square,#battle-view .phase,#battle-view .skill,#battle-view .lock-btn{background-image:linear-gradient(180deg,#1b1108a8,#060403df),url("assets/ui-black-iron-v1.webp");background-size:cover;background-position:center}
+#battle-view .phase{background-image:linear-gradient(180deg,#16443ed9,#061716e8),url("assets/ui-black-iron-v1.webp")}
+#battle-view .hand-dock{background:radial-gradient(ellipse at 50% -15%,#8c4f2052,transparent 46%),linear-gradient(180deg,#100a06b8,#050403f5 36%),url("assets/ui-black-iron-v1.webp") center/cover no-repeat}
+#battle-view .hand-dock:before{background:linear-gradient(180deg,#26170cca,#080503f2),url("assets/ui-black-iron-v1.webp") center 70%/cover no-repeat;border-color:#75502f}
+#battle-view .hand-dock{grid-template-columns:36px minmax(0,1fr) 58px;gap:3px}
+#battle-view .pile-count{display:none}
+#battle-view .hand{gap:3px;padding-inline:1px;overflow-x:auto;overflow-y:visible}
+#battle-view .hand-card{flex:0 0 calc((100% - 9px)/4);width:calc((100% - 9px)/4);height:auto;aspect-ratio:5/7;padding:0}
+#battle-view .lock-btn{width:58px;min-width:58px}
+
+/* Touch drag feedback. */
+#battle-view .hand-card{touch-action:none}
+.card-drag-ghost{position:fixed;z-index:999;width:84px;height:118px;margin:0;padding:0;border:0;background:none;pointer-events:none;transform:translate(-50%,-78%) rotate(-2deg) scale(1.08);filter:drop-shadow(0 16px 13px #000d) drop-shadow(0 0 8px #50d8cc80);opacity:.94}
+.card-drag-ghost .standard-card{width:84px!important;height:118px!important}
+body.card-dragging{user-select:none}body.card-dragging .hand-card:not(.card-drag-ghost){filter:saturate(.55) brightness(.7)}
+@media(max-height:720px){.card-drag-ghost{width:71px;height:100px}.card-drag-ghost .standard-card{width:71px!important;height:100px!important}}
+@media(min-width:700px){#battle-view.active{--board-card-w:108px}}
